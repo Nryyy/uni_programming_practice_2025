@@ -1,0 +1,57 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HromadaWEB.AppHost", "HromadaWEB.AppHost\HromadaWEB.AppHost.csproj", "{A926E447-7689-466F-94F5-7F9D526D9C3C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HromadaWEB.ServiceDefaults", "HromadaWEB.ServiceDefaults\HromadaWEB.ServiceDefaults.csproj", "{9CD1FAA4-6CD9-4920-85BE-7DA290F50801}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HromadaWEB.ApiService", "HromadaWEB.ApiService\HromadaWEB.ApiService.csproj", "{DACB5F83-0363-4DF8-9770-18352F1806AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HromadaWEB.Web", "HromadaWEB.Web\HromadaWEB.Web.csproj", "{E346DBD7-795B-48F2-8ED7-1DB68988D4F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HromadaWEB.BL", "HromadaWEB.BL\HromadaWEB.BL.csproj", "{6B0E0A8B-DBC9-487A-A24F-EC3BCBC9779B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HromadaWEB.Models", "HromadaWEB.Models\HromadaWEB.Models.csproj", "{8ECF4CBA-C070-4AD9-9E02-A3BE431C3336}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HromadaWEB.Service", "HromadaWEB.Service\HromadaWEB.Service.csproj", "{540D1B39-C0DC-4B9E-A81A-438FF5E159D9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A926E447-7689-466F-94F5-7F9D526D9C3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A926E447-7689-466F-94F5-7F9D526D9C3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A926E447-7689-466F-94F5-7F9D526D9C3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A926E447-7689-466F-94F5-7F9D526D9C3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CD1FAA4-6CD9-4920-85BE-7DA290F50801}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CD1FAA4-6CD9-4920-85BE-7DA290F50801}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CD1FAA4-6CD9-4920-85BE-7DA290F50801}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CD1FAA4-6CD9-4920-85BE-7DA290F50801}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DACB5F83-0363-4DF8-9770-18352F1806AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DACB5F83-0363-4DF8-9770-18352F1806AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DACB5F83-0363-4DF8-9770-18352F1806AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DACB5F83-0363-4DF8-9770-18352F1806AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E346DBD7-795B-48F2-8ED7-1DB68988D4F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E346DBD7-795B-48F2-8ED7-1DB68988D4F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E346DBD7-795B-48F2-8ED7-1DB68988D4F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E346DBD7-795B-48F2-8ED7-1DB68988D4F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B0E0A8B-DBC9-487A-A24F-EC3BCBC9779B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B0E0A8B-DBC9-487A-A24F-EC3BCBC9779B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B0E0A8B-DBC9-487A-A24F-EC3BCBC9779B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B0E0A8B-DBC9-487A-A24F-EC3BCBC9779B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8ECF4CBA-C070-4AD9-9E02-A3BE431C3336}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8ECF4CBA-C070-4AD9-9E02-A3BE431C3336}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8ECF4CBA-C070-4AD9-9E02-A3BE431C3336}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8ECF4CBA-C070-4AD9-9E02-A3BE431C3336}.Release|Any CPU.Build.0 = Release|Any CPU
+		{540D1B39-C0DC-4B9E-A81A-438FF5E159D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{540D1B39-C0DC-4B9E-A81A-438FF5E159D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{540D1B39-C0DC-4B9E-A81A-438FF5E159D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{540D1B39-C0DC-4B9E-A81A-438FF5E159D9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

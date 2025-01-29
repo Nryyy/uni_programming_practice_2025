@@ -1,0 +1,60 @@
+﻿@page "/login"
+
+@using HromadaWEB.Models.Models
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<h3>Вхід</h3>
+
+@if (!string.IsNullOrEmpty(Message))
+{
+    <div class="alert @(IsSuccess ? "alert-success" : "alert-danger")">@Message</div>
+}
+
+<EditForm Model="loginModel" OnValidSubmit="HandleLogin" FormName="loginForm">
+    <DataAnnotationsValidator />
+    <div>
+        <label>Логін</label>
+        <InputText @bind-Value="loginModel.Username" class="form-control" />
+    </div>
+    <div>
+        <label>Пароль</label>
+        <InputText @bind-Value="loginModel.Password" Type="password" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Увійти</button>
+
+    @if (!string.IsNullOrEmpty(Message))
+    {
+        <div class="alert @MessageType">
+            @Message
+        </div>
+    }
+</EditForm>
+
+
+
+@code {
+    private UserDto loginModel = new UserDto();
+    private string Message;
+    private string MessageType = "alert-info"; // Default message type
+    private bool IsSuccess = false;
+
+    private async Task HandleLogin()
+    {
+        var response = await Http.PostAsJsonAsync("https://localhost:7358/api/Auth/login", loginModel);
+        Message = response.ToString();
+        if (response.IsSuccessStatusCode)
+        {
+            Message = "Вхід успішний!";
+            IsSuccess = true;
+            await Task.Delay(2000);
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            Message = "Невірний логін або пароль.";
+            IsSuccess = false;
+        }
+    }
+}
