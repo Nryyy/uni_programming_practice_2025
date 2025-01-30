@@ -1,60 +1,66 @@
 ﻿@page "/login"
 
-@using HromadaWEB.Models.Models
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@using HromadaWEB.Models.DTOs
 @rendermode InteractiveServer
 
-<h3>Вхід</h3>
+<PageTitle>Login</PageTitle>
 
-@if (!string.IsNullOrEmpty(Message))
-{
-    <div class="alert @(IsSuccess ? "alert-success" : "alert-danger")">@Message</div>
-}
-
-<EditForm Model="loginModel" OnValidSubmit="HandleLogin" FormName="loginForm">
+<EditForm Model="@loginDto" OnValidSubmit="HandleLogin">
     <DataAnnotationsValidator />
-    <div>
-        <label>Логін</label>
-        <InputText @bind-Value="loginModel.Username" class="form-control" />
-    </div>
-    <div>
-        <label>Пароль</label>
-        <InputText @bind-Value="loginModel.Password" Type="password" class="form-control" />
-    </div>
-    <button type="submit" class="btn btn-primary">Увійти</button>
+    <ValidationSummary />
 
-    @if (!string.IsNullOrEmpty(Message))
-    {
-        <div class="alert @MessageType">
-            @Message
-        </div>
-    }
+    <div class="form-group">
+        <label for="email">Email</label>
+        <InputText id="email" class="form-control" @bind-Value="loginDto.Email" />
+        <ValidationMessage For="@(() => loginDto.Email)" />
+    </div>
+
+    <div class="form-group">
+        <label for="password">Password</label>
+        <InputText id="password" class="form-control" @bind-Value="loginDto.Password" type="password" />
+        <ValidationMessage For="@(() => loginDto.Password)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Login</button>
 </EditForm>
 
-
+@if (loginError != null)
+{
+    <div class="alert alert-danger mt-3">
+        @loginError
+    </div>
+}
 
 @code {
-    private UserDto loginModel = new UserDto();
-    private string Message;
-    private string MessageType = "alert-info"; // Default message type
-    private bool IsSuccess = false;
+    private LoginDto loginDto = new LoginDto();
+    private string? loginError;
 
     private async Task HandleLogin()
     {
-        var response = await Http.PostAsJsonAsync("https://localhost:7358/api/Auth/login", loginModel);
-        Message = response.ToString();
-        if (response.IsSuccessStatusCode)
+        try
         {
-            Message = "Вхід успішний!";
-            IsSuccess = true;
-            await Task.Delay(2000);
-            Navigation.NavigateTo("/");
+            var response = await Http.PostAsJsonAsync("https://localhost:7358/api/Auth/login", loginDto);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+                loginError = errorResponse?.Message ?? "Login failed. Please try again.";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            Message = "Невірний логін або пароль.";
-            IsSuccess = false;
+            loginError = "An error occurred during login: " + ex.Message;
         }
+    }
+
+    public class ErrorResponse
+    {
+        public string Message { get; set; }
     }
 }

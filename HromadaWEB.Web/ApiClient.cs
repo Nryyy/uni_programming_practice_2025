@@ -1,4 +1,4 @@
-﻿using HromadaWEB.Models.Models;
+﻿using HromadaWEB.Models.DTOs;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Localization;
 using Newtonsoft.Json;

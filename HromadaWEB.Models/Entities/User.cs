@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace HromadaWEB.Models.Entities
+﻿namespace HromadaWEB.Models.Entities
 {
     public class User
     {
@@ -12,8 +6,9 @@ namespace HromadaWEB.Models.Entities
         public string Email { get; set; }
         public string PasswordHash { get; set; }
         public string Username { get; set; }
-        public string Role { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public bool IsBlocked { get; set; }
+        public int RoleId { get; set; }
+        public Role Role { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public bool IsBlocked { get; set; } = false;
     }
 }

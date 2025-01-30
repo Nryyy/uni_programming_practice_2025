@@ -1,5 +1,5 @@
-﻿using HromadaWEB.Models.Entities;
-using HromadaWEB.Models.Models;
+﻿using HromadaWEB.Models.DTOs;
+using HromadaWEB.Models.Entities;
 using Microsoft.AspNetCore.Components;
 using Newtonsoft.Json;
 

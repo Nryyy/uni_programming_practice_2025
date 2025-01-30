@@ -1,13 +1,13 @@
 using HromadaWEB.BL.Repositories;
 using HromadaWEB.BL.Services;
-using HromadaWEB.ApiService.Data;
+using HromadaWEB.DB;
 using Microsoft.EntityFrameworkCore;
 using HromadaWEB.BL.Interfaces;
 using HromadaWEB.Service.Handlers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using HromadaWEB.Models.Models;
+using HromadaWEB.Models.DTOs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,11 +45,6 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-});
-
-builder.Services.AddDbContext<HromadaWEB.BL.Data.AppDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });

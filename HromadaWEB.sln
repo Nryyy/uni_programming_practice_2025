@@ -10,11 +10,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HromadaWEB.ApiService", "Hr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HromadaWEB.Web", "HromadaWEB.Web\HromadaWEB.Web.csproj", "{E346DBD7-795B-48F2-8ED7-1DB68988D4F4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HromadaWEB.BL", "HromadaWEB.BL\HromadaWEB.BL.csproj", "{6B0E0A8B-DBC9-487A-A24F-EC3BCBC9779B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HromadaWEB.Infrastructure", "HromadaWEB.BL\HromadaWEB.Infrastructure.csproj", "{6B0E0A8B-DBC9-487A-A24F-EC3BCBC9779B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HromadaWEB.Models", "HromadaWEB.Models\HromadaWEB.Models.csproj", "{8ECF4CBA-C070-4AD9-9E02-A3BE431C3336}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HromadaWEB.Service", "HromadaWEB.Service\HromadaWEB.Service.csproj", "{540D1B39-C0DC-4B9E-A81A-438FF5E159D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HromadaWEB.DB", "HromadaWEB.DB\HromadaWEB.DB.csproj", "{4348C83C-B2EF-4A16-9768-94C9AAB0F7A0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -50,6 +52,10 @@ Global
 		{540D1B39-C0DC-4B9E-A81A-438FF5E159D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{540D1B39-C0DC-4B9E-A81A-438FF5E159D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{540D1B39-C0DC-4B9E-A81A-438FF5E159D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4348C83C-B2EF-4A16-9768-94C9AAB0F7A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4348C83C-B2EF-4A16-9768-94C9AAB0F7A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4348C83C-B2EF-4A16-9768-94C9AAB0F7A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4348C83C-B2EF-4A16-9768-94C9AAB0F7A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\HromadaWEB.DB\HromadaWEB.DB.csproj" />
     <ProjectReference Include="..\HromadaWEB.Models\HromadaWEB.Models.csproj" />
   </ItemGroup>
 

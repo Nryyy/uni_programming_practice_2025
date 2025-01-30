@@ -1,6 +1,6 @@
 ﻿using HromadaWEB.BL.Interfaces;
 using HromadaWEB.BL.Services;
-using HromadaWEB.Models.Models;
+using HromadaWEB.Models.DTOs;
 using HromadaWEB.Service.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

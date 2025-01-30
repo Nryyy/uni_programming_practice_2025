@@ -1,5 +1,5 @@
 ﻿using HromadaWEB.BL.Interfaces;
-using HromadaWEB.BL.Data;
+using HromadaWEB.DB;
 using HromadaWEB.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 

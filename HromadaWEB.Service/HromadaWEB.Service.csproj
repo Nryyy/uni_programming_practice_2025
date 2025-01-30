@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HromadaWEB.BL\HromadaWEB.BL.csproj" />
+    <ProjectReference Include="..\HromadaWEB.BL\HromadaWEB.Infrastructure.csproj" />
     <ProjectReference Include="..\HromadaWEB.Models\HromadaWEB.Models.csproj" />
   </ItemGroup>
 

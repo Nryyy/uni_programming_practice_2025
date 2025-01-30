@@ -1,13 +1,10 @@
 ﻿using HromadaWEB.BL.Interfaces;
+using HromadaWEB.Models.DTOs;
 using HromadaWEB.Models.Entities;
-using HromadaWEB.Models.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using System;
+using System.Threading.Tasks;
 
 namespace HromadaWEB.ApiService.Controllers
 {
@@ -23,34 +20,37 @@ namespace HromadaWEB.ApiService.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<User>> Register(UserDto request)
+        public async Task<ActionResult<string>> Register(RegistrationDto request)
         {
-            var user = await _authService.RegisterAsync(request);
-
-            if (user is null)
+            try
             {
-                return BadRequest("User already exists");
-            }
+                var user = await _authService.RegisterAsync(request);
 
-            return Ok(user);
+                return Ok(user);
+            }
+            catch (InvalidOperationException ex) // Обробляємо винятки
+            {
+                return BadRequest(ex.Message); // Відправляємо повідомлення про помилку
+            }
         }
 
-        [HttpPost("login")] // Важливо!
-        public async Task<ActionResult<string>> Login([FromBody] UserDto request)
+        [HttpPost("login")]
+        public async Task<ActionResult<string>> Login([FromBody] LoginDto request)
         {
-            if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
+            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
             {
-                return BadRequest(new { Message = "Username and password are required" });
+                return BadRequest(new { Message = "Email and password are required" });
             }
 
             var token = await _authService.LoginAsync(request);
 
             if (token is null)
             {
-                return Unauthorized(new { Message = "Invalid username or password" });
+                return Unauthorized(new { Message = "Invalid email or password" });
             }
 
             return Ok(new { Token = token });
         }
+
     }
 }
