@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using HromadaWEB.Models.Entities;
+using System.ComponentModel.DataAnnotations;
 
 public class RegistrationDto
 {

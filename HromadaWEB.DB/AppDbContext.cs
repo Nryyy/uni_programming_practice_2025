@@ -15,12 +15,12 @@ namespace HromadaWEB.DB
         public DbSet<ProductModel> Products { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<User>()
-                .HasOne(u => u.Role)
-                .WithMany(r => r.Users)
-                .HasForeignKey(u => u.RoleId);
-        }
+        //protected override void OnModelCreating(ModelBuilder modelBuilder)
+        //{
+        //    modelBuilder.Entity<User>()
+        //        .HasOne(u => u.Role)
+        //        .WithMany(r => r.Users)
+        //        .HasForeignKey(u => u.RoleId);
+        //}
     }
 }

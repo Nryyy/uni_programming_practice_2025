@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@using HromadaWEB.Web.Components.Pages.User
 
 <div class="page">
     <div class="sidebar">
@@ -9,6 +10,12 @@
         <div class="top-row px-4">
             <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
         </div>
+
+        <header>
+            <!-- Інші елементи навігації або заголовки тут -->
+            <!-- Компонент UserStatus, що показує нік користувача та кнопку Вийти -->
+            <UserStatus />
+        </header>
 
         <article class="content px-4">
             @Body

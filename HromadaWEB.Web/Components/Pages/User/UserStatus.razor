@@ -1,0 +1,40 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+
+@rendermode InteractiveServer
+
+<div class="user-status">
+    @if (isAuthenticated)
+    {
+        <span class="user-name">@userName</span>
+        <button class="btn btn-link" @onclick="LogOut">Вийти</button>
+    }
+    else
+    {
+        <span class="guest-status">Гість</span>
+    }
+</div>
+
+@code {
+    private bool isAuthenticated = false;
+    private string userName = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        isAuthenticated = user.Identity.IsAuthenticated;
+        if (isAuthenticated)
+        {
+            userName = user.Identity.Name ?? "Невідомий користувач";
+        }
+    }
+
+    private void LogOut()
+    {
+        // Логіка виходу з акаунту, залежно від того, як ви обробляєте авторизацію
+        Navigation.NavigateTo("/logout");  // Направляє на сторінку виходу
+    }
+}

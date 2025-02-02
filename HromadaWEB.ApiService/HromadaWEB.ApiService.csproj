@@ -12,9 +12,11 @@
     <ProjectReference Include="..\HromadaWEB.Models\HromadaWEB.Models.csproj" />
     <ProjectReference Include="..\HromadaWEB.ServiceDefaults\HromadaWEB.ServiceDefaults.csproj" />
     <ProjectReference Include="..\HromadaWEB.Service\HromadaWEB.Service.csproj" />
+    <ProjectReference Include="..\HromadaWEB.Web\HromadaWEB.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageReference Include="MediatR" Version="12.4.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />

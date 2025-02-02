@@ -1,0 +1,100 @@
+﻿@page "/users/edit/{UserId:guid}"
+@page "/users/create"
+
+@rendermode InteractiveServer
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@using HromadaWEB.Models.DTOs
+
+<div class="container">
+    <div class="card">
+        <h4>@(_isEditing ? "Редагування користувача" : "Створення користувача")</h4>
+
+        <label>Ім'я</label>
+        <input type="text" @bind="User.Username" required />
+
+        <label>Email</label>
+        <input type="email" @bind="User.Email" required />
+
+        <label>Пароль</label>
+        <input type="password" @bind="User.PasswordHash" required />
+
+        <label>Роль</label>
+        <select @bind="User.RoleId">
+            @foreach (var role in _roles)
+            {
+                <option value="@role.Id">@role.Name</option>
+            }
+        </select>
+
+        <label>
+            <input type="checkbox" @bind="User.IsBlocked" /> Заблокований
+        </label>
+
+        <div class="button-group">
+            <button class="primary" @onclick="SaveUser">Зберегти</button>
+            <button class="secondary" @onclick="Cancel">Скасувати</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Guid? UserId { get; set; }
+    private UserDto User = new();
+    private bool _isEditing = false;
+    private List<RoleDto> _roles = new();
+    private string registrationError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _roles = await Http.GetFromJsonAsync<List<RoleDto>>("api/Role/roles");
+
+        if (UserId.HasValue)
+        {
+            // Якщо це редагування, отримуємо дані користувача
+            User = await Http.GetFromJsonAsync<UserDto>($"api/users/{UserId.Value}");
+            _isEditing = true;
+        }
+    }
+
+    private async Task SaveUser()
+    {
+        if (_isEditing)
+        {
+            // Редагування користувача
+            var response = await Http.PutAsJsonAsync($"api/users/{User.Id}", User);
+            if (response.IsSuccessStatusCode)
+            {
+                Navigation.NavigateTo("/users");
+            }
+            else
+            {
+                registrationError = "Не вдалося оновити користувача.";
+            }
+        }
+        else
+        {
+            // Створення нового користувача
+            var registrationDto = new RegistrationDto
+                {
+                    Username = User.Username,
+                    Email = User.Email,
+                    Password = User.PasswordHash,
+                    ConfirmPassword = User.PasswordHash // Потрібно додати підтвердження пароля
+                };
+
+            var response = await Http.PostAsJsonAsync("api/Auth/register", registrationDto);
+            if (response.IsSuccessStatusCode)
+            {
+                Navigation.NavigateTo("/users");
+            }
+            else
+            {
+                registrationError = "Не вдалося зареєструвати користувача.";
+            }
+        }
+    }
+
+    private void Cancel() => Navigation.NavigateTo("/users");
+}

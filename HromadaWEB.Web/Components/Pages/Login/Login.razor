@@ -1,10 +1,16 @@
 ﻿@page "/login"
 
+@using HromadaWEB.Models.DTOs
+@using HromadaWEB.Web
+@using System.Net.Http.Headers
+@using Microsoft.AspNetCore.Components.Authorization;
+@using System.Net.Http.Json
+@using Blazored.LocalStorage
 @inject HttpClient Http
 @inject NavigationManager Navigation
-@using HromadaWEB.Models.DTOs
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
-
 <PageTitle>Login</PageTitle>
 
 <EditForm Model="@loginDto" OnValidSubmit="HandleLogin">
@@ -45,7 +51,25 @@
 
             if (response.IsSuccessStatusCode)
             {
-                Navigation.NavigateTo("/");
+                var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
+                if (authResponse is not null && !string.IsNullOrEmpty(authResponse.Token))
+                {
+                    // Зберігаємо токен у sessionStorage
+                    await JSRuntime.InvokeVoidAsync("sessionStorage.setItem", "authToken", authResponse.Token);
+
+                    // Оновлюємо стан аутентифікації
+                    if (AuthenticationStateProvider is ApiAuthenticationStateProvider customAuthProvider)
+                    {
+                        await customAuthProvider.MarkUserAsAuthenticated(authResponse.Token);
+                    }
+
+                    // Перехід на головну сторінку
+                    Navigation.NavigateTo("/users");
+                }
+                else
+                {
+                    loginError = "Невірна відповідь від сервера.";
+                }
             }
             else
             {
