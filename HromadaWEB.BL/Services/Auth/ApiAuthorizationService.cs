@@ -28,7 +28,7 @@ public class ApiAuthorizationService
 
     private async Task<string> GetTokenFromSessionStorage()
     {
-        // Виклик функції через JavaScript
+        // Call JavaScript function to get token from session storage
         var token = await _jsRuntime.InvokeAsync<string>("sessionStorageUtil.getItem", "jwtToken");
         return token;
     }

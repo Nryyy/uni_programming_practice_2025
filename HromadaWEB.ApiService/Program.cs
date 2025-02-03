@@ -1,23 +1,18 @@
-using HromadaWEB.BL.Repositories;
-using HromadaWEB.BL.Services;
-using HromadaWEB.DB;
 using Microsoft.EntityFrameworkCore;
-using HromadaWEB.BL.Interfaces;
-using HromadaWEB.Service.Handlers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using HromadaWEB.Models.DTOs;
 using HromadaWEB.Core.Services;
 using HromadaWEB.Core.Repositories;
 using HromadaWEB.Service.Handlers.User;
-using System.Text.Json;
 using HromadaWEB.Infrastructure.Interfaces.Role;
 using HromadaWEB.Infrastructure.Services.Role;
 using HromadaWEB.Service.Handlers.Role;
 using HromadaWEB.Infrastructure.Repositories.Role;
 using Microsoft.AspNetCore.Components.Authorization;
-using Blazored.LocalStorage;
+using HromadaWEB.DB.Data;
+using HromadaWEB.Infrastructure.Interfaces.Auth;
+using HromadaWEB.Infrastructure.Services.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +24,7 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+// Swagger configuration for JWT
 builder.Services.AddSwaggerGen(c =>
 {
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
@@ -54,6 +50,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+// DataBase configuration
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -72,10 +69,8 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddMediatR(configuration =>
 {
-    configuration.RegisterServicesFromAssembly(typeof(GetProductsHandler).Assembly);
     configuration.RegisterServicesFromAssembly(typeof(GetAllUsersHandler).Assembly);
     configuration.RegisterServicesFromAssembly(typeof(GetUserByIdHandler).Assembly);
-    configuration.RegisterServicesFromAssembly(typeof(CreateUserHandler).Assembly);
     configuration.RegisterServicesFromAssembly(typeof(UpdateUserHandler).Assembly);
     configuration.RegisterServicesFromAssembly(typeof(DeleteUserHandler).Assembly);
     configuration.RegisterServicesFromAssembly(typeof(GetRolesHandler).Assembly);
@@ -101,8 +96,6 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<AuthenticationStateProvider, HromadaWEB.Web.ApiAuthenticationStateProvider>();
 
 // Add services to the container
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddScoped<IUserService, UserService>();
@@ -111,7 +104,6 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 var app = builder.Build();

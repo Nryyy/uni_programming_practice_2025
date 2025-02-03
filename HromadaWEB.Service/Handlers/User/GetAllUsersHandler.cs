@@ -1,6 +1,7 @@
 ﻿using HromadaWEB.Core.Services;
 using HromadaWEB.Service.Queries.User;
 using MediatR;
+
 namespace HromadaWEB.Service.Handlers.User
 {
     public class GetAllUsersHandler : IRequestHandler<GetAllUsersQuery, IEnumerable<Models.Entities.User>>

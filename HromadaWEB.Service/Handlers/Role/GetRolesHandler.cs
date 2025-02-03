@@ -1,13 +1,6 @@
-﻿using HromadaWEB.Core.Services;
-using HromadaWEB.Infrastructure.Interfaces.Role;
+﻿using HromadaWEB.Infrastructure.Interfaces.Role;
 using HromadaWEB.Service.Queries.Role;
-using HromadaWEB.Service.Queries.User;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HromadaWEB.Service.Handlers.Role
 {

@@ -1,6 +1,4 @@
-﻿using HromadaWEB.DB;
-using HromadaWEB.BL.Interfaces;
-using HromadaWEB.Models.Entities;
+﻿using HromadaWEB.Models.Entities;
 using Microsoft.Extensions.Configuration;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
@@ -8,10 +6,10 @@ using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using HromadaWEB.Models.DTOs;
-using System.Threading.Tasks;
+using HromadaWEB.DB.Data;
+using HromadaWEB.Infrastructure.Interfaces.Auth;
 
-namespace HromadaWEB.BL.Services
+namespace HromadaWEB.Infrastructure.Services.Auth
 {
     public class AuthService : IAuthService
     {
@@ -121,7 +119,7 @@ namespace HromadaWEB.BL.Services
         // Метод для створення користувача
         private async Task<User?> CreateUser(RegistrationDto request)
         {
-            var userRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin"); // Виправлення назви ролі
+            var userRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "PendingConfirmation"); // Виправлення назви ролі
             if (userRole == null)
             {
                 return null; // Якщо роль не знайдена, повертаємо null

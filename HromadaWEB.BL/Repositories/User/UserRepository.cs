@@ -1,6 +1,6 @@
 ﻿using HromadaWEB.Models.Entities;
-using HromadaWEB.DB;
 using Microsoft.EntityFrameworkCore;
+using HromadaWEB.DB.Data;
 
 namespace HromadaWEB.Core.Repositories
 {

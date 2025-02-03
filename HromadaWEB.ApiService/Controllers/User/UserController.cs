@@ -1,12 +1,8 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using HromadaWEB.Service.Queries;
-using HromadaWEB.Service.Commands;
 using HromadaWEB.Models.Entities;
 using HromadaWEB.Service.Commands.User;
 using HromadaWEB.Service.Queries.User;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 
 namespace HromadaWEB.API.Controllers
@@ -45,18 +41,6 @@ namespace HromadaWEB.API.Controllers
                 return NotFound(); // Якщо користувачі не знайдені, повернути NotFound
             }
             return Ok(users);
-        }
-
-        // Створити нового користувача
-        [HttpPost]
-        public async Task<IActionResult> CreateUser([FromBody] User user)
-        {
-            if (user == null)
-            {
-                return BadRequest("Invalid user data.");
-            }
-            await _mediator.Send(new CreateUserCommand(user));
-            return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
         }
 
         // Оновити користувача

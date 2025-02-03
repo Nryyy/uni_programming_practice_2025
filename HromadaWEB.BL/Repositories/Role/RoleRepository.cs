@@ -1,11 +1,6 @@
-﻿using HromadaWEB.DB;
+﻿using HromadaWEB.DB.Data;
 using HromadaWEB.Infrastructure.Interfaces.Role;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HromadaWEB.Infrastructure.Repositories.Role
 {

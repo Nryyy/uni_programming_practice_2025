@@ -1,7 +1,4 @@
-﻿using HromadaWEB.Models.DTOs;
-using HromadaWEB.Models.Entities;
-
-namespace HromadaWEB.BL.Interfaces
+﻿namespace HromadaWEB.Infrastructure.Interfaces.Auth
 {
     public interface IAuthService
     {

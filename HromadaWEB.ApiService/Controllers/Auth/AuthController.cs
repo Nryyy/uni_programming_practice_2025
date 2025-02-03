@@ -1,12 +1,7 @@
-﻿using HromadaWEB.BL.Interfaces;
-using HromadaWEB.Models.DTOs;
-using HromadaWEB.Models.Entities;
-using Microsoft.AspNetCore.Http;
+﻿using HromadaWEB.Infrastructure.Interfaces.Auth;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 
-namespace HromadaWEB.ApiService.Controllers
+namespace HromadaWEB.ApiService.Controllers.Auth
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -28,9 +23,9 @@ namespace HromadaWEB.ApiService.Controllers
 
                 return Ok(user);
             }
-            catch (InvalidOperationException ex) // Обробляємо винятки
+            catch (InvalidOperationException ex)
             {
-                return BadRequest(ex.Message); // Відправляємо повідомлення про помилку
+                return BadRequest(ex.Message);
             }
         }
 

@@ -1,6 +1,5 @@
 ﻿using HromadaWEB.Service.Queries.Role;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HromadaWEB.ApiService.Controllers.Role
@@ -20,9 +19,9 @@ namespace HromadaWEB.ApiService.Controllers.Role
         public async Task<ActionResult<IEnumerable<Models.Entities.Role>>> GetAllRoles()
         {
             var roles = await _mediator.Send(new GetRolesQuery());
-            if (roles == null || !roles.Any())  // Перевірка на порожній список
+            if (roles == null || !roles.Any())
             {
-                return NotFound(); // Якщо користувачі не знайдені, повернути NotFound
+                return NotFound();
             }
             return Ok(roles);
         }
