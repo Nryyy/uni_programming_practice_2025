@@ -16,4 +16,7 @@ public class RegistrationDto
     [Required(ErrorMessage = "Підтвердження паролю обов'язкове.")]
     [Compare("Password", ErrorMessage = "Паролі не співпадають.")]
     public string ConfirmPassword { get; set; }
+    public bool IsCommunity { get; set; } // Нове поле для вибору
+    public string? CommunityName { get; set; } // Назва громади
+    public string? Region { get; set; } // Регiон громади
 }

@@ -70,25 +70,26 @@
         try
         {
             var token = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "authToken");
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
+            token = token?.Trim('"') ?? "";
 
-            if (string.IsNullOrEmpty(token) || !user.IsInRole("Admin"))
+            if (string.IsNullOrEmpty(token))
             {
-				Navigation.NavigateTo("/login");
-                // errorMessage = "Токен не знайдений.";
+                Navigation.NavigateTo("/access-denied");
                 return;
             }
 
-            token = token.Trim('"');
+            var request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:7358/api/users/all_users");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var response = await Http.SendAsync(request);
 
-            var response = await Http.GetFromJsonAsync<List<UserDto>>("https://localhost:7358/api/users/all_users");
-
-            if (response != null)
+            if (response.IsSuccessStatusCode)
             {
-                _users = response;
+                _users = await response.Content.ReadFromJsonAsync<List<UserDto>>() ?? new List<UserDto>();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized || response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                Navigation.NavigateTo("/access-denied");
             }
             else
             {
@@ -103,6 +104,7 @@
         tokenLoaded = true;
         StateHasChanged();
     }
+
 
     private void CreateUser() => Navigation.NavigateTo("/users/create");
     private void EditUser(Guid id) => Navigation.NavigateTo($"/users/edit/{id}");

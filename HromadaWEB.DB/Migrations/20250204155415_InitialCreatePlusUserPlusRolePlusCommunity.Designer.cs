@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HromadaWEB.DB.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250130182641_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250204155415_InitialCreatePlusUserPlusRolePlusCommunity")]
+    partial class InitialCreatePlusUserPlusRolePlusCommunity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,26 +25,29 @@ namespace HromadaWEB.DB.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("HromadaWEB.Models.Entities.ProductModel", b =>
+            modelBuilder.Entity("HromadaWEB.Models.Entities.Community", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("uniqueidentifier");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<string>("Region")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("RepresentiveId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Products");
+                    b.HasIndex("RepresentiveId");
+
+                    b.ToTable("Communities");
                 });
 
             modelBuilder.Entity("HromadaWEB.Models.Entities.Role", b =>
@@ -94,20 +97,24 @@ namespace HromadaWEB.DB.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("HromadaWEB.Models.Entities.Community", b =>
+                {
+                    b.HasOne("HromadaWEB.Models.Entities.User", "Representive")
+                        .WithMany()
+                        .HasForeignKey("RepresentiveId");
+
+                    b.Navigation("Representive");
+                });
+
             modelBuilder.Entity("HromadaWEB.Models.Entities.User", b =>
                 {
                     b.HasOne("HromadaWEB.Models.Entities.Role", "Role")
-                        .WithMany("Users")
+                        .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Role");
-                });
-
-            modelBuilder.Entity("HromadaWEB.Models.Entities.Role", b =>
-                {
-                    b.Navigation("Users");
                 });
 #pragma warning restore 612, 618
         }

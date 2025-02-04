@@ -68,12 +68,26 @@ namespace HromadaWEB.Infrastructure.Services.Auth
             }
 
             var user = await CreateUser(request); // Викликаємо асинхронний метод
-            if (user == null) return "Role 'Admin' not found."; // Якщо роль не знайдена
+            if (user == null) return "Role 'PendingConfirmation' not found.";
 
             try
             {
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync(); // Збереження користувача в базі
+
+                // Якщо користувач реєструється від імені громади
+                if (request.IsCommunity && !string.IsNullOrEmpty(request.CommunityName) && !string.IsNullOrEmpty(request.Region))
+                {
+                    var community = new Community
+                    {
+                        Name = request.CommunityName,
+                        Region = request.Region,
+                        Representive = user // Встановлюємо користувача як представника громади
+                    };
+
+                    _context.Communities.Add(community);
+                    await _context.SaveChangesAsync();
+                }
             }
             catch (Exception ex)
             {
@@ -82,6 +96,7 @@ namespace HromadaWEB.Infrastructure.Services.Auth
 
             return "Registration successful. Please check your email for confirmation."; // Успішна реєстрація
         }
+
 
         #endregion
 

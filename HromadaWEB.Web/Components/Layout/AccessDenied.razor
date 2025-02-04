@@ -1,0 +1,66 @@
+﻿@page "/access-denied"
+
+@rendermode InteractiveServer
+
+@inject NavigationManager Navigation
+
+<div class="access-denied-container">
+    <h1>🚫 Доступ заборонено!</h1>
+    <p>Упс! Схоже, у вас немає прав для перегляду цієї сторінки.</p>
+
+    <div class="gif-container">
+        <img src="https://media.giphy.com/media/l2JehQ2GitHGdVG9y/giphy.gif" alt="No Access Funny GIF" />
+    </div>
+
+    <button @onclick="GoHome">⬅️ На головну</button>
+</div>
+
+@code {
+    private void GoHome()
+    {
+        Navigation.NavigateTo("/");
+    }
+}
+
+<style>
+    .access-denied-container {
+        text-align: center;
+        padding: 40px;
+        font-family: Arial, sans-serif;
+        color: #333;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        color: #d9534f;
+        margin-bottom: 10px;
+    }
+
+    p {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+    }
+
+    .gif-container img {
+        width: 300px;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    button {
+        background-color: #0275d8;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-size: 1rem;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 20px;
+        transition: background-color 0.3s;
+    }
+
+    button:hover {
+        background-color: #025aa5;
+    }
+</style>

@@ -8,6 +8,12 @@
 
 <PageTitle>Register</PageTitle>
 
+<style>
+    .sidebar {
+        display: none;
+    }
+</style>
+
 <EditForm Model="@registrationDto" OnValidSubmit="HandleRegistration">
     <DataAnnotationsValidator />
     <ValidationSummary />
@@ -35,6 +41,33 @@
         <InputText id="confirmPassword" class="form-control" @bind-Value="registrationDto.ConfirmPassword" type="password" />
         <ValidationMessage For="@(() => registrationDto.ConfirmPassword)" />
     </div>
+
+    <div class="form-group">
+        <label>Register as:</label>
+        <div>
+            <InputRadioGroup @bind-Value="registrationDto.IsCommunity">
+                <InputRadio class="form-check-input" id="community" Value="true" />
+                <label class="form-check-label" for="community">Я реєструюсь від імені територіальної громади</label>
+                <InputRadio class="form-check-input" id="controller" Value="false" />
+                <label class="form-check-label" for="controller">Я контролюючий орган</label>
+            </InputRadioGroup>
+        </div>
+    </div>
+
+    @if (registrationDto.IsCommunity)
+    {
+        <div class="form-group">
+            <label for="communityName">Community Name</label>
+            <InputText id="communityName" class="form-control" @bind-Value="registrationDto.CommunityName" />
+            <ValidationMessage For="@(() => registrationDto.CommunityName)" />
+        </div>
+
+        <div class="form-group">
+            <label for="region">Region</label>
+            <InputText id="region" class="form-control" @bind-Value="registrationDto.Region" />
+            <ValidationMessage For="@(() => registrationDto.Region)" />
+        </div>
+    }
 
     <button type="submit" class="btn btn-primary" disabled="@(!isPasswordValid)">Register</button>
 </EditForm>
