@@ -13,31 +13,128 @@
 @rendermode InteractiveServer
 <PageTitle>Login</PageTitle>
 
-<EditForm Model="@loginDto" OnValidSubmit="HandleLogin">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+<style>
+    /* Основні стилі для сторінки входу */
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        font-family: 'Arial', sans-serif;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        overflow-x: hidden;
+    }
 
-    <div class="form-group">
-        <label for="email">Email</label>
-        <InputText id="email" class="form-control" @bind-Value="loginDto.Email" />
-        <ValidationMessage For="@(() => loginDto.Email)" />
+    .sidebar {
+        display: none;
+    }
+
+    .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .login-card {
+        background-color: #ffffff;
+        border-radius: 10px;
+        padding: 30px;
+        width: 100%;
+        max-width: 450px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid #dee2e6;
+    }
+
+    .login-title {
+        text-align: center;
+        font-size: 24px;
+        margin-bottom: 20px;
+        color: #007bff;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+        .form-group label {
+            font-weight: bold;
+            color: #495057;
+        }
+
+    .form-control {
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+        padding: 10px;
+        width: 100%;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+    }
+
+        .form-control:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+    .btn-submit {
+        width: 100%;
+        padding: 12px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-submit {
+        background-color: #007bff;
+        color: white;
+    }
+
+        .btn-submit:hover {
+            background-color: #0056b3;
+        }
+
+    .alert {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #f8d7da;
+        color: #721c24;
+        border-radius: 5px;
+    }
+</style>
+
+<div class="login-container">
+    <div class="login-card">
+        <h2 class="login-title">Вхід</h2>
+        <EditForm Model="@loginDto" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label for="email">Електронна адреса</label>
+                <InputText id="email" class="form-control" @bind-Value="loginDto.Email" />
+                <ValidationMessage For="@(() => loginDto.Email)" />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Пароль</label>
+                <InputText id="password" class="form-control" @bind-Value="loginDto.Password" type="password" />
+                <ValidationMessage For="@(() => loginDto.Password)" />
+            </div>
+
+            <button type="submit" class="btn-submit">Увійти</button>
+        </EditForm>
+
+        @if (loginError != null)
+        {
+            <div class="alert">
+                @loginError
+            </div>
+        }
     </div>
-
-    <div class="form-group">
-        <label for="password">Password</label>
-        <InputText id="password" class="form-control" @bind-Value="loginDto.Password" type="password" />
-        <ValidationMessage For="@(() => loginDto.Password)" />
-    </div>
-
-    <button type="submit" class="btn btn-primary">Login</button>
-</EditForm>
-
-@if (loginError != null)
-{
-    <div class="alert alert-danger mt-3">
-        @loginError
-    </div>
-}
+</div>
 
 @code {
     private LoginDto loginDto = new LoginDto();
@@ -74,12 +171,12 @@
             else
             {
                 var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
-                loginError = errorResponse?.Message ?? "Login failed. Please try again.";
+                loginError = errorResponse?.Message ?? "Вхід не вдалося виконати. Спробуйте ще раз.";
             }
         }
         catch (Exception ex)
         {
-            loginError = "An error occurred during login: " + ex.Message;
+            loginError = "Сталася помилка під час входу: " + ex.Message;
         }
     }
 

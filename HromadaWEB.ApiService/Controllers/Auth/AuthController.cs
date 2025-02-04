@@ -39,9 +39,9 @@ namespace HromadaWEB.ApiService.Controllers.Auth
 
             var token = await _authService.LoginAsync(request);
 
-            if (token is null)
+            if (token == "Invalid password" || token == "User not found")
             {
-                return Unauthorized(new { Message = "Invalid email or password" });
+                return Unauthorized(new { Message = "Неправильний email чи пароль" });
             }
 
             return Ok(new { Token = token });

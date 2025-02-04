@@ -9,75 +9,174 @@
 <PageTitle>Register</PageTitle>
 
 <style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        font-family: 'Arial', sans-serif;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        overflow-x: hidden;
+    }
+
     .sidebar {
-        display: none;
+		display: none;
+    }
+
+    .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .form-container {
+        background-color: #ffffff;
+        border-radius: 10px;
+        padding: 30px;
+        width: 100%;
+        max-width: 450px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid #dee2e6;
+    }
+
+        .form-container h2 {
+            text-align: center;
+            color: #007bff;
+        }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    label {
+        font-weight: bold;
+        color: #495057;
+    }
+
+    .form-control {
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+        padding: 10px;
+        width: 100%;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+    }
+
+        .form-control:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+    .form-check-label {
+        margin-left: 5px;
+    }
+
+    .btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+    .alert {
+        margin-top: 20px;
+        text-align: center;
     }
 </style>
 
-<EditForm Model="@registrationDto" OnValidSubmit="HandleRegistration">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+<div class="container">
+    <div class="form-container">
+        <h2>Реєстрація</h2>
+        <EditForm Model="@registrationDto" OnValidSubmit="HandleRegistration">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
 
-    <div class="form-group">
-        <label for="username">Username</label>
-        <InputText id="username" class="form-control" @bind-Value="registrationDto.Username" />
-        <ValidationMessage For="@(() => registrationDto.Username)" />
+            <div class="form-group">
+                <label for="username">ПІБ</label>
+                <InputText id="username" class="form-control" @bind-Value="registrationDto.Username" />
+                <ValidationMessage For="@(() => registrationDto.Username)" />
+            </div>
+
+            <div class="form-group">
+                <label for="email">Електронна адреса</label>
+                <InputText id="email" class="form-control" @bind-Value="registrationDto.Email" />
+                <ValidationMessage For="@(() => registrationDto.Email)" />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Пароль</label>
+                <InputText id="password" class="form-control" @bind-Value="registrationDto.Password" type="password" />
+                <ValidationMessage For="@(() => registrationDto.Password)" />
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Підтвердження паролю</label>
+                <InputText id="confirmPassword" class="form-control" @bind-Value="registrationDto.ConfirmPassword" type="password" />
+                <ValidationMessage For="@(() => registrationDto.ConfirmPassword)" />
+            </div>
+
+            <div class="form-group">
+                <label>Зареєструватися як:</label>
+                <div>
+                    <InputRadioGroup @bind-Value="registrationDto.IsCommunity">
+                        <InputRadio class="form-check-input" id="community" Value="true" />
+                        <label class="form-check-label" for="community">Представник територіальної громади  </label>
+						<br />
+                        <InputRadio class="form-check-input" id="controller" Value="false" />
+                        <label class="form-check-label" for="controller">Контролюючий орган</label>
+                    </InputRadioGroup>
+                </div>
+            </div>
+
+            @if (registrationDto.IsCommunity)
+            {
+                <div class="form-group">
+                    <label for="communityName">Повна назва громади</label>
+                    <InputText id="communityName" class="form-control" @bind-Value="registrationDto.CommunityName" />
+                    <ValidationMessage For="@(() => registrationDto.CommunityName)" />
+                </div>
+
+                <div class="form-group">
+                    <label for="region">Розсташування громади</label>
+                    <InputText id="region" class="form-control" @bind-Value="registrationDto.Region" />
+                    <ValidationMessage For="@(() => registrationDto.Region)" />
+                </div>
+            }
+
+            <button type="submit" class="btn btn-primary" disabled="@(!isPasswordValid)">Зареєструватися</button>
+        </EditForm>
+
+        @if (registrationError != null)
+        {
+            <div class="alert alert-danger">
+                @registrationError
+            </div>
+        }
     </div>
-
-    <div class="form-group">
-        <label for="email">Email</label>
-        <InputText id="email" class="form-control" @bind-Value="registrationDto.Email" />
-        <ValidationMessage For="@(() => registrationDto.Email)" />
-    </div>
-
-    <div class="form-group">
-        <label for="password">Password</label>
-        <InputText id="password" class="form-control" @bind-Value="registrationDto.Password" type="password" />
-        <ValidationMessage For="@(() => registrationDto.Password)" />
-    </div>
-
-    <div class="form-group">
-        <label for="confirmPassword">Confirm Password</label>
-        <InputText id="confirmPassword" class="form-control" @bind-Value="registrationDto.ConfirmPassword" type="password" />
-        <ValidationMessage For="@(() => registrationDto.ConfirmPassword)" />
-    </div>
-
-    <div class="form-group">
-        <label>Register as:</label>
-        <div>
-            <InputRadioGroup @bind-Value="registrationDto.IsCommunity">
-                <InputRadio class="form-check-input" id="community" Value="true" />
-                <label class="form-check-label" for="community">Я реєструюсь від імені територіальної громади</label>
-                <InputRadio class="form-check-input" id="controller" Value="false" />
-                <label class="form-check-label" for="controller">Я контролюючий орган</label>
-            </InputRadioGroup>
-        </div>
-    </div>
-
-    @if (registrationDto.IsCommunity)
-    {
-        <div class="form-group">
-            <label for="communityName">Community Name</label>
-            <InputText id="communityName" class="form-control" @bind-Value="registrationDto.CommunityName" />
-            <ValidationMessage For="@(() => registrationDto.CommunityName)" />
-        </div>
-
-        <div class="form-group">
-            <label for="region">Region</label>
-            <InputText id="region" class="form-control" @bind-Value="registrationDto.Region" />
-            <ValidationMessage For="@(() => registrationDto.Region)" />
-        </div>
-    }
-
-    <button type="submit" class="btn btn-primary" disabled="@(!isPasswordValid)">Register</button>
-</EditForm>
-
-@if (registrationError != null)
-{
-    <div class="alert alert-danger mt-3">
-        @registrationError
-    </div>
-}
+</div>
 
 @code {
     private RegistrationDto registrationDto = new RegistrationDto();

@@ -1,7 +1,99 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
 
-<h1>Hello, world!</h1>
+<PageTitle>Головна</PageTitle>
 
-Welcome to your new app.
+<style>
+    .sidebar {
+        display: none;
+    }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #121212;
+        overflow-x: hidden;
+    }
+
+    .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        text-align: center;
+        background-color: #121212;
+        color: #ffffff;
+        font-family: 'Arial', sans-serif;
+    }
+
+    .logo {
+        font-size: 3rem;
+        font-weight: bold;
+    }
+
+    .description {
+        margin-top: 10px;
+        font-size: 1.2rem;
+        max-width: 600px;
+    }
+
+    .buttons {
+        margin-top: 20px;
+        display: flex;
+        gap: 15px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        font-size: 1rem;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .btn-primary {
+        background-color: #007aff;
+        color: white;
+    }
+
+        .btn-primary:hover {
+            background-color: #005bb5;
+        }
+
+    .btn-secondary {
+        background-color: #333;
+        color: white;
+    }
+
+        .btn-secondary:hover {
+            background-color: #555;
+        }
+</style>
+
+<div class="container">
+    <div class="logo">HromadaWEB</div>
+    <div class="description">Система для взаємодії територіальних громад та контролюючих органів</div>
+    <div class="buttons">
+        <button class="btn btn-primary" @onclick="NavigateToRegister">Реєстрація</button>
+        <button class="btn btn-secondary" @onclick="NavigateToLogin">Вхід</button>
+    </div>
+</div>
+
+@code {
+    private void NavigateToRegister()
+    {
+        Navigation.NavigateTo("/register");
+    }
+
+    private void NavigateToLogin()
+    {
+        Navigation.NavigateTo("/login");
+    }
+}
