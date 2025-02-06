@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HromadaWEB.DB.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250204155415_InitialCreatePlusUserPlusRolePlusCommunity")]
-    partial class InitialCreatePlusUserPlusRolePlusCommunity
+    [Migration("20250205165023_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -66,6 +66,47 @@ namespace HromadaWEB.DB.Migrations
                     b.ToTable("Roles");
                 });
 
+            modelBuilder.Entity("HromadaWEB.Models.Entities.Template", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.ToTable("Templates");
+                });
+
+            modelBuilder.Entity("HromadaWEB.Models.Entities.TemplateQuestionsType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TemplateQuestionsTypes");
+                });
+
             modelBuilder.Entity("HromadaWEB.Models.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -104,6 +145,15 @@ namespace HromadaWEB.DB.Migrations
                         .HasForeignKey("RepresentiveId");
 
                     b.Navigation("Representive");
+                });
+
+            modelBuilder.Entity("HromadaWEB.Models.Entities.Template", b =>
+                {
+                    b.HasOne("HromadaWEB.Models.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById");
+
+                    b.Navigation("CreatedBy");
                 });
 
             modelBuilder.Entity("HromadaWEB.Models.Entities.User", b =>

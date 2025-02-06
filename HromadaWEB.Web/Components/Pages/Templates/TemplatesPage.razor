@@ -1,0 +1,147 @@
+﻿@page "/templates"
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+@rendermode InteractiveServer
+
+@using HromadaWEB.Models.DTOs.Templates
+
+<PageTitle>Шаблони</PageTitle>
+
+<style>
+    .container {
+        max-width: 1200px;
+        margin: auto;
+        padding: 20px;
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .template-card {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+        .template-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+
+    .template-buttons button {
+        margin-left: 10px;
+        padding: 10px;
+        border-radius: 8px;
+        font-weight: bold;
+        transition: background 0.3s ease-in-out;
+    }
+
+    .btn-create {
+        background: #007bff;
+        color: white;
+    }
+
+        .btn-create:hover {
+            background: #0056b3;
+        }
+
+    .btn-edit {
+        background: #ffcc00;
+        color: #333;
+    }
+
+        .btn-edit:hover {
+            background: #e6b800;
+        }
+
+    .btn-view {
+        background: #28a745;
+        color: white;
+    }
+
+        .btn-view:hover {
+            background: #1e7e34;
+        }
+
+    .btn-delete {
+        background: #dc3545;
+        color: white;
+    }
+
+        .btn-delete:hover {
+            background: #a71d2a;
+        }
+</style>
+
+<div class="container">
+    <div class="header">
+        <h1 class="text-2xl font-bold text-gray-900">Шаблони</h1>
+        <button class="btn-create py-2 px-4 rounded" @onclick="CreateTemplate">Створити</button>
+    </div>
+
+    @if (Templates is null)
+    {
+        <p>Завантаження шаблонів...</p>
+    }
+    else if (Templates.Count == 0)
+    {
+        <p class="text-gray-500">Немає доступних шаблонів.</p>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @foreach (var template in Templates)
+            {
+                <div class="template-card">
+                    <h2 class="text-lg font-semibold text-gray-900">@template.Title</h2>
+                    <p class="text-gray-600 mt-2">@template.Description</p>
+                    <div class="flex justify-between items-center mt-4">
+                        <span class="text-sm text-gray-500">@template.CreatedAt.ToShortDateString()</span>
+                        <div class="template-buttons">
+                            <button class="btn-edit" @onclick="() => EditTemplate(template.Id)">✏️</button>
+                            <button class="btn-view" @onclick="() => ViewResponses(template.Id)">📄</button>
+                            <button class="btn-delete" @onclick="() => DeleteTemplate(template.Id)">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<TemplateDto> Templates = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Templates = await Http.GetFromJsonAsync<List<TemplateDto>>("https://localhost:7358/api/Template/all_templates");
+    }
+
+    private void CreateTemplate()
+    {
+        Navigation.NavigateTo("/templates/create");
+    }
+
+    private void EditTemplate(Guid id)
+    {
+        Navigation.NavigateTo($"/templates/edit/{id}");
+    }
+
+    private void ViewResponses(Guid id)
+    {
+        Navigation.NavigateTo($"/templates/responses/{id}");
+    }
+
+    private void DeleteTemplate(Guid id)
+    {
+        // Implement delete logic
+    }
+}

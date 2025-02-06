@@ -1,0 +1,74 @@
+﻿@page "/templates/create"
+
+@rendermode InteractiveServer
+
+@using HromadaWEB.Models.DTOs.Templates
+@using HromadaWEB.Models.Entities
+@using System.Net.Http.Json
+
+<h3>Створення шаблону</h3>
+
+<EditForm Model="newTemplate" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="constructor-field">
+        <label class="input-label">Назва шаблону:</label>
+        <InputText @bind-Value="newTemplate.Name" class="input-field" />
+    </div>
+
+    <div class="constructor-field">
+        <label class="input-label">Опис:</label>
+        <InputTextArea @bind-Value="newTemplate.Description" class="input-field" />
+    </div>
+
+    <button type="submit" class="submit-btn">Зберегти</button>
+</EditForm>
+
+@code {
+    private TemplateModel newTemplate = new();
+    private string selectedQuestionType = string.Empty;  // Змінна для вибору типу питання
+
+    [Inject]
+    private HttpClient Http { get; set; }  // Для запитів до API
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            // Створюємо об'єкт шаблону
+            var template = new Template
+                {
+                    Id = Guid.NewGuid(),
+                    Title = newTemplate.Name,
+                    Description = newTemplate.Description
+                };
+
+            // Відправляємо запит до API для створення шаблону
+            var response = await Http.PostAsJsonAsync("api/Template", template);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Успішно створено шаблон
+                // Можна додати повідомлення або перенаправити на іншу сторінку
+            }
+            else
+            {
+                // Обробка помилки
+                var error = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Error: {error}");
+            }
+        }
+        catch (Exception ex)
+        {
+            // Обробка помилок
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+    private class TemplateModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+    }
+}

@@ -1,7 +1,9 @@
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Microsoft.AspNetCore.Components.Authorization;
+using HromadaWEB.DB.Data;
 using HromadaWEB.Core.Services;
 using HromadaWEB.Core.Repositories;
 using HromadaWEB.Service.Handlers.User;
@@ -9,10 +11,12 @@ using HromadaWEB.Infrastructure.Interfaces.Role;
 using HromadaWEB.Infrastructure.Services.Role;
 using HromadaWEB.Service.Handlers.Role;
 using HromadaWEB.Infrastructure.Repositories.Role;
-using Microsoft.AspNetCore.Components.Authorization;
-using HromadaWEB.DB.Data;
 using HromadaWEB.Infrastructure.Interfaces.Auth;
 using HromadaWEB.Infrastructure.Services.Auth;
+using HromadaWEB.Infrastructure.Interfaces.Templates;
+using HromadaWEB.Infrastructure.Services.Templates;
+using HromadaWEB.Infrastructure.Repositories.Templates;
+using HromadaWEB.Service.Handlers.Templates;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,7 +77,14 @@ builder.Services.AddMediatR(configuration =>
     configuration.RegisterServicesFromAssembly(typeof(GetUserByIdHandler).Assembly);
     configuration.RegisterServicesFromAssembly(typeof(UpdateUserHandler).Assembly);
     configuration.RegisterServicesFromAssembly(typeof(DeleteUserHandler).Assembly);
+
     configuration.RegisterServicesFromAssembly(typeof(GetRolesHandler).Assembly);
+
+    configuration.RegisterServicesFromAssembly(typeof(GetAllTemplatesHandler).Assembly);
+    configuration.RegisterServicesFromAssembly(typeof(GetTemplateByIdHandler).Assembly);
+    configuration.RegisterServicesFromAssembly(typeof(CreateTemplateHandler).Assembly);
+    configuration.RegisterServicesFromAssembly(typeof(UpdateTemplateHandler).Assembly);
+    configuration.RegisterServicesFromAssembly(typeof(DeleteTemplateHandler).Assembly);
 });
 
 var secret = builder.Configuration.GetValue<string>("AppSettings:Token");
@@ -103,6 +114,9 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+
+builder.Services.AddScoped<ITemplateService, TemplateService>();
+builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
 
 builder.Services.AddOpenApi();
 
