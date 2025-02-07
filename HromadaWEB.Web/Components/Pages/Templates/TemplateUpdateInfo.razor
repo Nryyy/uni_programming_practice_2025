@@ -1,0 +1,230 @@
+﻿@page "/templates/edit/{id:guid}"
+
+@rendermode InteractiveServer
+
+@using HromadaWEB.Models.DTOs.Templates
+@using HromadaWEB.Models.Entities
+@using System.Net.Http.Json
+
+<h3 class="title">Редагування шаблону</h3>
+
+<EditForm Model="template" OnValidSubmit="HandleSubmit" class="form-container">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label class="input-label">Назва шаблону:</label>
+        <InputText @bind-Value="template.Name" class="input-field" />
+    </div>
+
+    <div class="form-group">
+        <label class="input-label">Опис:</label>
+        <InputTextArea @bind-Value="template.Description" class="input-field" />
+    </div>
+
+    <button type="submit" class="submit-btn">Зберегти</button>
+</EditForm>
+
+<h3 class="title">Додати індикатор</h3>
+<button @onclick="ToggleIndicatorForm" class="add-indicator-btn">➕ Додати індикатор</button>
+
+@if (showIndicatorForm)
+{
+    <EditForm Model="newIndicator" OnValidSubmit="AddIndicator" class="form-container">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label class="input-label">Критерій оцінювання:</label>
+            <select @bind="newIndicator.DirectionId" class="input-field">
+                @foreach (var direction in evaluationDirections)
+                {
+                    <option value="@direction.Id">@direction.Name</option>
+                }
+            </select>
+            <button type="button" @onclick="ToggleDirectionForm" class="add-btn">➕</button>
+        </div>
+
+        @if (showDirectionForm)
+        {
+            <EditForm Model="newDirection" OnValidSubmit="AddEvaluationDirection" class="form-container">
+                <ChildContent Context="directionContext">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="form-group">
+                        <label class="input-label">Назва напряму:</label>
+                        <InputText @bind-Value="newDirection.Name" class="input-field" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="input-label">Вага:</label>
+                        <InputNumber @bind-Value="newDirection.Weight" class="input-field" />
+                    </div>
+
+                    <button type="submit" class="submit-btn">Додати напрям</button>
+                </ChildContent>
+            </EditForm>
+        }
+
+        <div class="form-group">
+            <label class="input-label">Код:</label>
+            <InputText @bind-Value="newIndicator.Code" class="input-field" />
+        </div>
+
+        <div class="form-group">
+            <label class="input-label">Назва:</label>
+            <InputText @bind-Value="newIndicator.Name" class="input-field" />
+        </div>
+
+        <div class="form-group">
+            <label class="input-label">Максимальний бал:</label>
+            <InputNumber @bind-Value="newIndicator.MaxScore" class="input-field" />
+        </div>
+
+        <button type="submit" class="submit-btn">Додати індикатор</button>
+    </EditForm>
+}
+
+<h3 class="title">Список індикаторів</h3>
+<ul class="indicator-list">
+    @foreach (var indicator in indicators)
+    {
+        <li class="indicator-item">@indicator.Code - @indicator.Name - @indicator.MaxScore</li>
+    }
+</ul>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private TemplateModel template = new();
+    private IndicatorModel newIndicator = new();
+    private List<Indicator> indicators = new();
+    private List<EvaluationDirection> evaluationDirections = new();
+    private bool showIndicatorForm = false;
+    private bool showDirectionForm = false;
+    private EvaluationDirectionModel newDirection = new();
+
+    [Inject] private HttpClient Http { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTemplate();
+        await LoadEvaluationDirections();
+    }
+
+    private async Task LoadTemplate()
+    {
+        try
+        {
+            template = await Http.GetFromJsonAsync<TemplateModel>($"api/Template/{Id}");
+            newIndicator.TemplateId = Id;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading template: {ex.Message}");
+        }
+    }
+
+    private async Task LoadEvaluationDirections()
+    {
+        try
+        {
+            evaluationDirections = await Http.GetFromJsonAsync<List<EvaluationDirection>>("api/EvaluationDirection");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading evaluation directions: {ex.Message}");
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            var templateEntity = new Template
+                {
+                    Id = Id,
+                    Title = template.Name,
+                    Description = template.Description
+                };
+
+            await Http.PutAsJsonAsync($"api/Template/{Id}", templateEntity);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating template: {ex.Message}");
+        }
+    }
+
+    private async Task AddIndicator()
+    {
+        try
+        {
+            var indicator = new Indicator
+                {
+                    Id = Guid.NewGuid(),
+                    TemplateId = newIndicator.TemplateId,
+                    DirectionId = newIndicator.DirectionId,
+                    Code = newIndicator.Code,
+                    Name = newIndicator.Name,
+                    MaxScore = newIndicator.MaxScore
+                };
+
+            await Http.PostAsJsonAsync("api/Indicator", indicator);
+            indicators.Add(indicator);
+            showIndicatorForm = false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding indicator: {ex.Message}");
+        }
+    }
+
+    private async Task AddEvaluationDirection()
+    {
+        try
+        {
+            var direction = new EvaluationDirection
+                {
+                    Id = Guid.NewGuid(),
+                    Name = newDirection.Name,
+                    Weight = newDirection.Weight
+                };
+
+            await Http.PostAsJsonAsync("api/EvaluationDirection", direction);
+            evaluationDirections.Add(direction);
+            showDirectionForm = false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding evaluation direction: {ex.Message}");
+        }
+    }
+
+    private void ToggleIndicatorForm() => showIndicatorForm = !showIndicatorForm;
+    private void ToggleDirectionForm() => showDirectionForm = !showDirectionForm;
+
+    public class TemplateModel
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+    }
+
+    public class IndicatorModel
+    {
+        public Guid TemplateId { get; set; }
+        public Guid DirectionId { get; set; }
+        public string Code { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public decimal MaxScore { get; set; }
+    }
+
+    public class EvaluationDirectionModel
+    {
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public string Name { get; set; } = string.Empty;
+        public decimal Weight { get; set; }
+    }
+}

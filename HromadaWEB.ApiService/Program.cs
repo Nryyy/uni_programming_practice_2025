@@ -17,6 +17,14 @@ using HromadaWEB.Infrastructure.Interfaces.Templates;
 using HromadaWEB.Infrastructure.Services.Templates;
 using HromadaWEB.Infrastructure.Repositories.Templates;
 using HromadaWEB.Service.Handlers.Templates;
+using HromadaWEB.Service.Handlers.EvaluationDirections;
+using HromadaWEB.Infrastructure.Services.EvaluationDirections;
+using HromadaWEB.Infrastructure.Repositories.EvaluationDirections;
+using HromadaWEB.Infrastructure.Interfaces.EvaluationDirections;
+using HromadaWEB.Service.Handlers.Indicators;
+using HromadaWEB.Infrastructure.Interfaces.Indicators;
+using HromadaWEB.Infrastructure.Services.Indicators;
+using HromadaWEB.Infrastructure.Repositories.Indicators;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -85,6 +93,18 @@ builder.Services.AddMediatR(configuration =>
     configuration.RegisterServicesFromAssembly(typeof(CreateTemplateHandler).Assembly);
     configuration.RegisterServicesFromAssembly(typeof(UpdateTemplateHandler).Assembly);
     configuration.RegisterServicesFromAssembly(typeof(DeleteTemplateHandler).Assembly);
+
+    configuration.RegisterServicesFromAssembly(typeof(GetAllEvaluationDirectionsHandler).Assembly);
+    configuration.RegisterServicesFromAssembly(typeof(GetEvaluationDirectionByIdHandler).Assembly);
+    configuration.RegisterServicesFromAssembly(typeof(CreateEvaluationDirectionHandler).Assembly);
+    configuration.RegisterServicesFromAssembly(typeof(UpdateEvaluationDirectionHandler).Assembly);
+    configuration.RegisterServicesFromAssembly(typeof(DeleteEvaluationDirectionHandler).Assembly);
+
+    configuration.RegisterServicesFromAssembly(typeof(GetAllIndicatorsHandler).Assembly);
+    configuration.RegisterServicesFromAssembly(typeof(GetIndicatorByIdHandler).Assembly);
+    configuration.RegisterServicesFromAssembly(typeof(CreateIndicatorHandler).Assembly);
+    configuration.RegisterServicesFromAssembly(typeof(UpdateIndicatorHandler).Assembly);
+    configuration.RegisterServicesFromAssembly(typeof(DeleteIndicatorHandler).Assembly);
 });
 
 var secret = builder.Configuration.GetValue<string>("AppSettings:Token");
@@ -117,6 +137,12 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
 builder.Services.AddScoped<ITemplateService, TemplateService>();
 builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
+
+builder.Services.AddScoped<IEvaluationDirectionService, EvaluationDirectionService>();
+builder.Services.AddScoped<IEvaluationDirectionRepository, EvaluationDirectionRepository>();
+
+builder.Services.AddScoped<IIndicatorService, IndicatorService>();
+builder.Services.AddScoped<IIndicatorRepository, IndicatorRepository>();
 
 builder.Services.AddOpenApi();
 

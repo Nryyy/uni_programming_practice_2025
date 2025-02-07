@@ -113,7 +113,7 @@ namespace HromadaWEB.Infrastructure.Services.Auth
             var claims = new Claim[]
             {
                 new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.Id != Guid.Empty ? user.Id.ToString() : Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.Role, user.Role.Name)  // Тепер перевірено, що user.Role не null
             };
 
