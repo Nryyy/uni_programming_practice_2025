@@ -2,6 +2,7 @@
 using HromadaWEB.Web;
 using HromadaWEB.Web.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Radzen;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +35,8 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddAuthorizationCore();
+
+builder.Services.AddRadzenComponents();
 
 var app = builder.Build();
 

@@ -10,15 +10,18 @@
     font-size: 24px;
     font-weight: bold;
     color: #2c3e50;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
+    text-align: center;
 }
 
 .form-container {
     background: #ffffff;
-    border-radius: 12px;
+    border-radius: 8px;
     padding: 20px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    width: 100%;
     max-width: 600px;
+    margin: 0 auto;
     margin-bottom: 20px;
 }
 
@@ -36,10 +39,9 @@
 .input-field {
     width: 100%;
     padding: 10px;
-    border-radius: 8px;
+    border-radius: 6px;
     border: 1px solid #ced4da;
     font-size: 16px;
-    transition: border-color 0.3s ease-in-out;
 }
 
     .input-field:focus {
@@ -55,9 +57,8 @@
     font-weight: bold;
     padding: 10px;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: background-color 0.3s ease-in-out;
 }
 
     .submit-btn:hover {
@@ -68,12 +69,13 @@
     background-color: #28a745;
     color: white;
     padding: 8px 12px;
-    border-radius: 8px;
+    border-radius: 6px;
     font-size: 14px;
     font-weight: bold;
     border: none;
     cursor: pointer;
-    transition: background-color 0.3s ease-in-out;
+    display: inline-block;
+    margin-top: 10px;
 }
 
     .add-indicator-btn:hover {
@@ -89,6 +91,7 @@
     border: none;
     cursor: pointer;
     margin-left: 10px;
+    display: inline-block;
 }
 
     .add-btn:hover {
@@ -98,12 +101,12 @@
 .indicator-list {
     list-style: none;
     padding: 0;
-    margin: 0;
+    margin: 20px 0 0 0;
 }
 
 .indicator-item {
     background: #ffffff;
-    border-radius: 8px;
+    border-radius: 6px;
     padding: 12px;
     margin-bottom: 10px;
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);

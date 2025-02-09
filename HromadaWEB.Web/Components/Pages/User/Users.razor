@@ -8,49 +8,43 @@
 @using Microsoft.AspNetCore.Components.Authorization;
 @using System.Net.Http.Json
 @using System.Net.Http.Headers
+@using Radzen
+@using Radzen.Blazor
 
-<div class="container">
-    <div class="card">
-        <div class="card-header">
-            <h4>Список користувачів</h4>
-            <button class="add-btn" @onclick="CreateUser">Додати користувача</button>
-        </div>
-
-        <table class="users-table">
-            <thead>
-                <tr>
-                    <th>Ім'я</th>
-                    <th>Email</th>
-                    <th>Роль</th>
-                    <th>Заблокований</th>
-                    <th class="actions-column">Дії</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var user in _users)
-                {
-                    <tr>
-                        <td>@user.Username</td>
-                        <td>@user.Email</td>
-                        <td>@user.Role?.Name</td>
-                        <td class="status">@(user.IsBlocked ? "Так" : "Ні")</td>
-                        <td class="actions">
-                            <button class="edit-btn" @onclick="() => EditUser(user.Id)">✏️</button>
-                            <button class="delete-btn" @onclick="() => DeleteUser(user.Id)">🗑️</button>
-                            <button class="block-btn" @onclick="() => ToggleBlockUser(user)">@(user.IsBlocked ? "🔓" : "🔒")</button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-
-        @if (!string.IsNullOrEmpty(errorMessage))
-        {
-            <div class="alert alert-danger">@errorMessage</div>
-        }
-
+<RadzenCard Class="p-4 shadow-md">
+    <div class="d-flex justify-between items-center mb-4">
+        <h4>Список користувачів</h4>
+        <RadzenButton Text="Додати користувача" Icon="add_circle" Class="btn-primary" Click="@CreateUser" />
     </div>
-</div>
+
+    <RadzenDataGrid TItem="UserDto" Data="_users" ColumnWidth="200px" Class="w-full">
+        <Columns>
+            <RadzenDataGridColumn TItem="UserDto" Property="Username" Title="Ім'я" />
+            <RadzenDataGridColumn TItem="UserDto" Property="Email" Title="Email" />
+            <RadzenDataGridColumn TItem="UserDto" Property="Role.Name" Title="Роль" />
+            <RadzenDataGridColumn TItem="UserDto" Title="Заблокований">
+                <Template Context="user">
+                    @(user.IsBlocked ? "Так" : "Ні")
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="UserDto" Title="Дії" Width="180px">
+                <Template Context="user">
+                    <RadzenButton Icon="edit" Class="btn-warning mr-2" Click="() => EditUser(user.Id)" />
+                    <RadzenButton Icon="delete" Class="btn-danger mr-2" Click="() => DeleteUser(user.Id)" />
+                    <RadzenButton Icon="@(user.IsBlocked ? "lock_open" : "lock")"
+                    Class="btn-secondary"
+                    Click="() => ToggleBlockUser(user)" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <RadzenAlert Severity="Error" Closeable="true">@errorMessage</RadzenAlert>
+    }
+</RadzenCard>
 
 @code {
     private List<UserDto> _users = new();
@@ -105,28 +99,76 @@
         StateHasChanged();
     }
 
-
     private void CreateUser() => Navigation.NavigateTo("/users/create");
     private void EditUser(Guid id) => Navigation.NavigateTo($"/users/edit/{id}");
 
     private async Task DeleteUser(Guid id)
     {
         await ExecuteApiRequest(
-            async () => await Http.DeleteAsync($"api/users/{id}"),
-            () => _users.RemoveAll(u => u.Id == id),
+            async () =>
+            {
+                var token = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+                token = token?.Trim('"') ?? "";
+
+                if (string.IsNullOrEmpty(token))
+                {
+                    Navigation.NavigateTo("/access-denied");
+                    return new HttpResponseMessage(System.Net.HttpStatusCode.Unauthorized);
+                }
+
+                var request = new HttpRequestMessage(HttpMethod.Delete, $"https://localhost:7358/api/users/{id}");
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                return await Http.SendAsync(request);
+            },
+            () =>
+            {
+                _users.RemoveAll(u => u.Id == id);
+                LoadUsers(); // Викликайте метод для перезавантаження даних користувачів
+            },
             "Не вдалося видалити користувача."
         );
+
+        StateHasChanged(); // Оновіть інтерфейс після видалення
     }
+
 
     private async Task ToggleBlockUser(UserDto user)
     {
-        user.IsBlocked = !user.IsBlocked;
         await ExecuteApiRequest(
-            async () => await Http.PutAsJsonAsync($"api/users/{user.Id}", user),
-            () => { },
+            async () =>
+            {
+                var token = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+                token = token?.Trim('"') ?? "";
+
+                if (string.IsNullOrEmpty(token))
+                {
+                    return new HttpResponseMessage(System.Net.HttpStatusCode.Unauthorized);
+                }
+
+                // Змінюємо стан блокування на false
+                user.IsBlocked = false;
+
+                var request = new HttpRequestMessage(HttpMethod.Put, $"https://localhost:7358/api/users/{user.Id}");
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                request.Content = JsonContent.Create(user);
+
+                return await Http.SendAsync(request);
+            },
+            () =>
+            {
+                // Оновлюємо список користувачів після зміни
+                var userToUpdate = _users.FirstOrDefault(u => u.Id == user.Id);
+                if (userToUpdate != null)
+                {
+                    userToUpdate.IsBlocked = false;
+                }
+                StateHasChanged();
+            },
             "Не вдалося змінити статус блокування."
         );
     }
+
 
     private async Task ExecuteApiRequest(Func<Task<HttpResponseMessage>> apiRequest, Action onSuccess, string errorMessage)
     {

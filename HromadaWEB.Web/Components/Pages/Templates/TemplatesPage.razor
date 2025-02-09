@@ -84,7 +84,7 @@
 <div class="container">
     <div class="header">
         <h1 class="text-2xl font-bold text-gray-900">Шаблони</h1>
-        <button class="btn-create py-2 px-4 rounded" @onclick="CreateTemplate">Створити</button>
+		<RadzenButton Text="Створити" Click="@CreateTemplate" Style="margin-left: 10px;" />
     </div>
 
     @if (Templates is null)
@@ -102,13 +102,13 @@
             {
                 <div class="template-card">
                     <h2 class="text-lg font-semibold text-gray-900">@template.Title</h2>
-                    <p class="text-gray-600 mt-2">@template.Description</p>
+                    <span>@((MarkupString)template.Description)</span>
                     <div class="flex justify-between items-center mt-4">
                         <span class="text-sm text-gray-500">@template.CreatedAt.ToShortDateString()</span>
                         <div class="template-buttons">
-                            <button class="btn-edit" @onclick="() => EditTemplate(template.Id)">✏️</button>
-                            <button class="btn-view" @onclick="() => ViewResponses(template.Id)">📄</button>
-                            <button class="btn-delete" @onclick="() => DeleteTemplate(template.Id)">🗑️</button>
+                            <RadzenButton Text="Редагувати шаблон" Icon="refresh" Click="@(() => EditTemplate(template.Id))" ButtonStyle="ButtonStyle.Base" />
+                            <RadzenButton Text="Подивитися відповіді" Icon="check_circle" Click="@(() => ViewResponses(template.Id))" ButtonStyle="ButtonStyle.Base" />
+                            <RadzenButton Text="Видалити" Icon="report" Click="@(() => DeleteTemplate(template.Id))" ButtonStyle="ButtonStyle.Base" />
                         </div>
                     </div>
                 </div>

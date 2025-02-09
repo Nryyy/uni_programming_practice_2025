@@ -5,92 +5,56 @@
 @using HromadaWEB.Models.DTOs.Templates
 @using HromadaWEB.Models.Entities
 @using System.Net.Http.Json
+@using Radzen
+@using Radzen.Blazor
 
 <h3 class="title">Редагування шаблону</h3>
 
-<EditForm Model="template" OnValidSubmit="HandleSubmit" class="form-container">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+<div class="form-container">
+    <RadzenTextBox @bind-Value="template.Name" Style="width: 100%; margin-bottom: 15px;" Placeholder="Назва шаблону" class="input-field" />
+    <RadzenHtmlEditor @bind-Value="template.Description" Style="width: 100%; margin-bottom: 20px;" Placeholder="Опис" class="input-field" />
+</div>
 
-    <div class="form-group">
-        <label class="input-label">Назва шаблону:</label>
-        <InputText @bind-Value="template.Name" class="input-field" />
-    </div>
-
-    <div class="form-group">
-        <label class="input-label">Опис:</label>
-        <InputTextArea @bind-Value="template.Description" class="input-field" />
-    </div>
-
-    <button type="submit" class="submit-btn">Зберегти</button>
-</EditForm>
+<RadzenButton Click="HandleSubmit" Text="Зберегти" Icon="save" Class="submit-btn" Style="width: 100%; margin-bottom: 30px;" />
 
 <h3 class="title">Додати індикатор</h3>
-<button @onclick="ToggleIndicatorForm" class="add-indicator-btn">➕ Додати індикатор</button>
+<RadzenButton Click="ToggleIndicatorForm" Text="Додати індикатор" Icon="add_circle" Class="add-indicator-btn" Style="margin-bottom: 20px;" />
 
 @if (showIndicatorForm)
 {
-    <EditForm Model="newIndicator" OnValidSubmit="AddIndicator" class="form-container">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+    <div class="indicator-form-container">
+        <RadzenDropDown Data="@evaluationDirections" TextProperty="Name" ValueProperty="Id" @bind-Value="newIndicator.DirectionId" Style="width: 100%; margin-bottom: 15px;" Placeholder="Критерій оцінювання" />
 
-        <div class="form-group">
-            <label class="input-label">Критерій оцінювання:</label>
-            <select @bind="newIndicator.DirectionId" class="input-field">
-                @foreach (var direction in evaluationDirections)
-                {
-                    <option value="@direction.Id">@direction.Name</option>
-                }
-            </select>
-            <button type="button" @onclick="ToggleDirectionForm" class="add-btn">➕</button>
-        </div>
+        <RadzenButton Click="ToggleDirectionForm" Text="➕ Додати напрям" Icon="add" Class="add-btn" Style="margin-bottom: 15px;" />
 
         @if (showDirectionForm)
         {
-            <EditForm Model="newDirection" OnValidSubmit="AddEvaluationDirection" class="form-container">
-                <ChildContent Context="directionContext">
-                    <DataAnnotationsValidator />
-                    <ValidationSummary />
-
-                    <div class="form-group">
-                        <label class="input-label">Назва напряму:</label>
-                        <InputText @bind-Value="newDirection.Name" class="input-field" />
-                    </div>
-
-                    <div class="form-group">
-                        <label class="input-label">Вага:</label>
-                        <InputNumber @bind-Value="newDirection.Weight" class="input-field" />
-                    </div>
-
-                    <button type="submit" class="submit-btn">Додати напрям</button>
-                </ChildContent>
-            </EditForm>
+            <RadzenTextBox @bind-Value="newDirection.Name" Style="width: 100%; margin-bottom: 15px;" Placeholder="Назва напряму" class="input-field" />
+            <RadzenNumeric @bind-Value="newDirection.Weight" Style="width: 100%; margin-bottom: 20px;" Placeholder="Вага" class="input-field" />
+            <RadzenButton Click="AddEvaluationDirection" Text="Додати напрям" Icon="save" Class="submit-btn" Style="width: 100%;" />
         }
 
-        <div class="form-group">
-            <label class="input-label">Код:</label>
-            <InputText @bind-Value="newIndicator.Code" class="input-field" />
-        </div>
+        <RadzenTextBox @bind-Value="newIndicator.Code" Style="width: 100%; margin-bottom: 15px;" Placeholder="Код" class="input-field" />
+        <RadzenTextBox @bind-Value="newIndicator.Name" Style="width: 100%; margin-bottom: 15px;" Placeholder="Назва" class="input-field" />
+        <RadzenNumeric @bind-Value="newIndicator.MaxScore" Style="width: 100%; margin-bottom: 20px;" Placeholder="Максимальний бал" class="input-field" />
 
-        <div class="form-group">
-            <label class="input-label">Назва:</label>
-            <InputText @bind-Value="newIndicator.Name" class="input-field" />
-        </div>
-
-        <div class="form-group">
-            <label class="input-label">Максимальний бал:</label>
-            <InputNumber @bind-Value="newIndicator.MaxScore" class="input-field" />
-        </div>
-
-        <button type="submit" class="submit-btn">Додати індикатор</button>
-    </EditForm>
+        <RadzenButton Click="AddIndicator" Text="Додати індикатор" Icon="add" Class="submit-btn" Style="width: 100%;" />
+    </div>
 }
 
 <h3 class="title">Список індикаторів</h3>
 <ul class="indicator-list">
     @foreach (var indicator in indicators)
     {
-        <li class="indicator-item">@indicator.Code - @indicator.Name - @indicator.MaxScore</li>
+        <li class="indicator-item">
+            <div class="indicator-details">
+                <div><strong>Код:</strong> @indicator.Code</div>
+                <div><strong>Назва:</strong> @indicator.Name</div>
+                <div><strong>Максимальний бал:</strong> @indicator.MaxScore</div>
+                <div><strong>Напрям:</strong> @GetDirectionName(indicator.DirectionId)</div>
+                <div><strong>Вага напряму:</strong> @GetDirectionWeight(indicator.DirectionId)</div>
+            </div>
+        </li>
     }
 </ul>
 
@@ -111,6 +75,7 @@
     {
         await LoadTemplate();
         await LoadEvaluationDirections();
+        await LoadIndicators();  // Завантажуємо індикатори
     }
 
     private async Task LoadTemplate()
@@ -137,6 +102,20 @@
             Console.WriteLine($"Error loading evaluation directions: {ex.Message}");
         }
     }
+
+    private async Task LoadIndicators()
+    {
+        try
+        {
+            var allIndicators = await Http.GetFromJsonAsync<List<Indicator>>("https://localhost:7358/api/Indicator");
+            indicators = allIndicators.Where(i => i.TemplateId == Id).ToList(); // Фільтруємо за TemplateId
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading indicators: {ex.Message}");
+        }
+    }
+
 
     private async Task HandleSubmit()
     {
@@ -174,6 +153,7 @@
             await Http.PostAsJsonAsync("api/Indicator", indicator);
             indicators.Add(indicator);
             showIndicatorForm = false;
+            ClearIndicatorForm();
         }
         catch (Exception ex)
         {
@@ -195,6 +175,7 @@
             await Http.PostAsJsonAsync("api/EvaluationDirection", direction);
             evaluationDirections.Add(direction);
             showDirectionForm = false;
+            ClearDirectionForm();
         }
         catch (Exception ex)
         {
@@ -202,8 +183,30 @@
         }
     }
 
+    private string GetDirectionWeight(Guid directionId)
+    {
+        var direction = evaluationDirections.FirstOrDefault(d => d.Id == directionId);
+        return direction != null ? direction.Weight.ToString() : "Не знайдено вагу";
+    }
+
+    private string GetDirectionName(Guid directionId)
+    {
+        var direction = evaluationDirections.FirstOrDefault(d => d.Id == directionId);
+        return direction?.Name ?? "Не знайдено напрям";
+    }
+
     private void ToggleIndicatorForm() => showIndicatorForm = !showIndicatorForm;
     private void ToggleDirectionForm() => showDirectionForm = !showDirectionForm;
+
+    private void ClearIndicatorForm()
+    {
+        newIndicator = new IndicatorModel();
+    }
+
+    private void ClearDirectionForm()
+    {
+        newDirection = new EvaluationDirectionModel();
+    }
 
     public class TemplateModel
     {
