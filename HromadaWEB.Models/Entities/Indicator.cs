@@ -12,6 +12,8 @@
 
         public string Code { get; set; }
         public string Name { get; set; }
+        public string Background { get; set; }
+        public string Source { get; set; }
 
         public decimal MaxScore { get; set; }
     }

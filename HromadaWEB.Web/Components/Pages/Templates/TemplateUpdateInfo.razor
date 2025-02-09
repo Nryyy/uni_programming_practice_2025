@@ -11,8 +11,11 @@
 <h3 class="title">Редагування шаблону</h3>
 
 <div class="form-container">
-    <RadzenTextBox @bind-Value="template.Name" Style="width: 100%; margin-bottom: 15px;" Placeholder="Назва шаблону" class="input-field" />
-    <RadzenHtmlEditor @bind-Value="template.Description" Style="width: 100%; margin-bottom: 20px;" Placeholder="Опис" class="input-field" />
+    <label>Назва шаблону:</label>
+    <RadzenTextBox @bind-Value="template.Title" Style="width: 100%; margin-bottom: 15px;" class="input-field" />
+
+    <label>Опис:</label>
+    <RadzenHtmlEditor @bind-Value="template.Description" Style="width: 100%; margin-bottom: 20px;" class="input-field" />
 </div>
 
 <RadzenButton Click="HandleSubmit" Text="Зберегти" Icon="save" Class="submit-btn" Style="width: 100%; margin-bottom: 30px;" />
@@ -23,20 +26,39 @@
 @if (showIndicatorForm)
 {
     <div class="indicator-form-container">
-        <RadzenDropDown Data="@evaluationDirections" TextProperty="Name" ValueProperty="Id" @bind-Value="newIndicator.DirectionId" Style="width: 100%; margin-bottom: 15px;" Placeholder="Критерій оцінювання" />
+        <label>Критерій оцінювання:</label>
+        <RadzenDropDown Data="@evaluationDirections" TextProperty="Name" ValueProperty="Id" @bind-Value="newIndicator.DirectionId" Style="width: 100%; margin-bottom: 15px;" />
+        <RadzenButton Click="ToggleEvaluationForm" Text="Додати критерій оцінювання" Icon="add" Class="add-direction-btn" Style="margin-bottom: 15px;" />
 
-        <RadzenButton Click="ToggleDirectionForm" Text="➕ Додати напрям" Icon="add" Class="add-btn" Style="margin-bottom: 15px;" />
-
-        @if (showDirectionForm)
+        @if (showEvaluationForm)
         {
-            <RadzenTextBox @bind-Value="newDirection.Name" Style="width: 100%; margin-bottom: 15px;" Placeholder="Назва напряму" class="input-field" />
-            <RadzenNumeric @bind-Value="newDirection.Weight" Style="width: 100%; margin-bottom: 20px;" Placeholder="Вага" class="input-field" />
-            <RadzenButton Click="AddEvaluationDirection" Text="Додати напрям" Icon="save" Class="submit-btn" Style="width: 100%;" />
+            <div class="evaluation-form-container">
+                <h3 class="title">Додати напрям оцінювання</h3>
+                <label>Назва напряму:</label>
+                <RadzenTextBox @bind-Value="newEvaluationDirection.Name" Style="width: 100%; margin-bottom: 15px;" class="input-field" />
+
+                <label>Вага:</label>
+                <RadzenNumeric @bind-Value="newEvaluationDirection.Weight" Style="width: 100%; margin-bottom: 20px;" class="input-field" />
+
+                <RadzenButton Click="AddEvaluationDirection" Text="Додати" Icon="add" Class="submit-btn" Style="width: 100%;" />
+            </div>
         }
 
-        <RadzenTextBox @bind-Value="newIndicator.Code" Style="width: 100%; margin-bottom: 15px;" Placeholder="Код" class="input-field" />
-        <RadzenTextBox @bind-Value="newIndicator.Name" Style="width: 100%; margin-bottom: 15px;" Placeholder="Назва" class="input-field" />
-        <RadzenNumeric @bind-Value="newIndicator.MaxScore" Style="width: 100%; margin-bottom: 20px;" Placeholder="Максимальний бал" class="input-field" />
+		<br />
+        <label>Код:</label>
+        <RadzenTextBox @bind-Value="newIndicator.Code" Style="width: 100%; margin-bottom: 15px;" class="input-field" />
+
+        <label>Назва:</label>
+        <RadzenTextBox @bind-Value="newIndicator.Name" Style="width: 100%; margin-bottom: 15px;" class="input-field" />
+
+        <label>Підстава:</label>
+        <RadzenTextBox @bind-Value="newIndicator.Background" Style="width: 100%; margin-bottom: 15px;" class="input-field" />
+
+        <label>Джерело:</label>
+        <RadzenTextBox @bind-Value="newIndicator.Source" Style="width: 100%; margin-bottom: 15px;" class="input-field" />
+
+        <label>Максимальний бал:</label>
+        <RadzenNumeric @bind-Value="newIndicator.MaxScore" Style="width: 100%; margin-bottom: 20px;" class="input-field" />
 
         <RadzenButton Click="AddIndicator" Text="Додати індикатор" Icon="add" Class="submit-btn" Style="width: 100%;" />
     </div>
@@ -50,10 +72,14 @@
             <div class="indicator-details">
                 <div><strong>Код:</strong> @indicator.Code</div>
                 <div><strong>Назва:</strong> @indicator.Name</div>
+                <div><strong>Підстава:</strong> @indicator.Background</div>
+                <div><strong>Джерело:</strong> @indicator.Source</div>
                 <div><strong>Максимальний бал:</strong> @indicator.MaxScore</div>
-                <div><strong>Напрям:</strong> @GetDirectionName(indicator.DirectionId)</div>
-                <div><strong>Вага напряму:</strong> @GetDirectionWeight(indicator.DirectionId)</div>
+                <div><strong>Напрям:</strong> @GetDirection(indicator.DirectionId)?.Name</div>
+                <div><strong>Вага:</strong> @GetDirection(indicator.DirectionId)?.Weight</div>
             </div>
+            <RadzenButton Click="() => EditIndicator(indicator)" Text="Редагувати" Icon="edit" Class="edit-btn" />
+            <RadzenButton Click="() => DeleteIndicator(indicator.Id)" Text="Видалити" Icon="delete" Class="delete-btn" Style="margin-left: 10px;" />
         </li>
     }
 </ul>
@@ -63,11 +89,12 @@
 
     private TemplateModel template = new();
     private IndicatorModel newIndicator = new();
+    private Indicator selectedIndicator = null;
+    private EvaluationDirection newEvaluationDirection = new();
     private List<Indicator> indicators = new();
     private List<EvaluationDirection> evaluationDirections = new();
     private bool showIndicatorForm = false;
-    private bool showDirectionForm = false;
-    private EvaluationDirectionModel newDirection = new();
+    private bool showEvaluationForm = false;
 
     [Inject] private HttpClient Http { get; set; }
 
@@ -75,70 +102,53 @@
     {
         await LoadTemplate();
         await LoadEvaluationDirections();
-        await LoadIndicators();  // Завантажуємо індикатори
+        await LoadIndicators();
     }
 
     private async Task LoadTemplate()
     {
-        try
-        {
-            template = await Http.GetFromJsonAsync<TemplateModel>($"api/Template/{Id}");
-            newIndicator.TemplateId = Id;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error loading template: {ex.Message}");
-        }
+        template = await Http.GetFromJsonAsync<TemplateModel>($"api/Template/{Id}");
+        newIndicator.TemplateId = Id;
     }
 
     private async Task LoadEvaluationDirections()
     {
-        try
-        {
-            evaluationDirections = await Http.GetFromJsonAsync<List<EvaluationDirection>>("api/EvaluationDirection");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error loading evaluation directions: {ex.Message}");
-        }
+        evaluationDirections = await Http.GetFromJsonAsync<List<EvaluationDirection>>("api/EvaluationDirection");
     }
 
     private async Task LoadIndicators()
     {
-        try
-        {
-            var allIndicators = await Http.GetFromJsonAsync<List<Indicator>>("https://localhost:7358/api/Indicator");
-            indicators = allIndicators.Where(i => i.TemplateId == Id).ToList(); // Фільтруємо за TemplateId
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error loading indicators: {ex.Message}");
-        }
+        var allIndicators = await Http.GetFromJsonAsync<List<Indicator>>("api/Indicator");
+        indicators = allIndicators.Where(i => i.TemplateId == Id).ToList();
     }
-
 
     private async Task HandleSubmit()
     {
-        try
-        {
-            var templateEntity = new Template
-                {
-                    Id = Id,
-                    Title = template.Name,
-                    Description = template.Description
-                };
+        var templateEntity = new Template
+            {
+                Id = Id,
+                Title = template.Title,
+                Description = template.Description
+            };
 
-            await Http.PutAsJsonAsync($"api/Template/{Id}", templateEntity);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error updating template: {ex.Message}");
-        }
+        await Http.PutAsJsonAsync($"api/Template/{Id}", templateEntity);
     }
 
     private async Task AddIndicator()
     {
-        try
+        if (selectedIndicator != null)
+        {
+            selectedIndicator.DirectionId = newIndicator.DirectionId;
+            selectedIndicator.Code = newIndicator.Code;
+            selectedIndicator.Name = newIndicator.Name;
+            selectedIndicator.Background = newIndicator.Background;
+            selectedIndicator.Source = newIndicator.Source;
+            selectedIndicator.MaxScore = newIndicator.MaxScore;
+
+            await Http.PutAsJsonAsync($"api/Indicator/{selectedIndicator.Id}", selectedIndicator);
+            selectedIndicator = null;
+        }
+        else
         {
             var indicator = new Indicator
                 {
@@ -147,87 +157,79 @@
                     DirectionId = newIndicator.DirectionId,
                     Code = newIndicator.Code,
                     Name = newIndicator.Name,
+                    Background = newIndicator.Background,
+                    Source = newIndicator.Source,
                     MaxScore = newIndicator.MaxScore
                 };
 
             await Http.PostAsJsonAsync("api/Indicator", indicator);
             indicators.Add(indicator);
-            showIndicatorForm = false;
-            ClearIndicatorForm();
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error adding indicator: {ex.Message}");
-        }
+
+        showIndicatorForm = false;
+        newIndicator = new IndicatorModel();
     }
 
     private async Task AddEvaluationDirection()
     {
-        try
-        {
-            var direction = new EvaluationDirection
-                {
-                    Id = Guid.NewGuid(),
-                    Name = newDirection.Name,
-                    Weight = newDirection.Weight
-                };
+        var direction = new EvaluationDirection
+            {
+                Id = Guid.NewGuid(),
+                Name = newEvaluationDirection.Name,
+                Weight = newEvaluationDirection.Weight
+            };
 
-            await Http.PostAsJsonAsync("api/EvaluationDirection", direction);
-            evaluationDirections.Add(direction);
-            showDirectionForm = false;
-            ClearDirectionForm();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error adding evaluation direction: {ex.Message}");
-        }
+        await Http.PostAsJsonAsync("api/EvaluationDirection", direction);
+        evaluationDirections.Add(direction);
+        showEvaluationForm = false;
+        newEvaluationDirection = new EvaluationDirection();
     }
 
-    private string GetDirectionWeight(Guid directionId)
+    private async Task DeleteIndicator(Guid indicatorId)
     {
-        var direction = evaluationDirections.FirstOrDefault(d => d.Id == directionId);
-        return direction != null ? direction.Weight.ToString() : "Не знайдено вагу";
+        await Http.DeleteAsync($"api/Indicator/{indicatorId}");
+        indicators.RemoveAll(i => i.Id == indicatorId);
     }
 
-    private string GetDirectionName(Guid directionId)
+    private void EditIndicator(Indicator indicator)
     {
-        var direction = evaluationDirections.FirstOrDefault(d => d.Id == directionId);
-        return direction?.Name ?? "Не знайдено напрям";
+        selectedIndicator = indicator;
+        newIndicator = new IndicatorModel
+            {
+                TemplateId = indicator.TemplateId,
+                DirectionId = indicator.DirectionId,
+                Code = indicator.Code,
+                Name = indicator.Name,
+                Background = indicator.Background,
+                Source = indicator.Source,
+                MaxScore = indicator.MaxScore
+            };
+        showIndicatorForm = true;
+    }
+
+    private EvaluationDirection GetDirection(Guid directionId)
+    {
+        return evaluationDirections.FirstOrDefault(d => d.Id == directionId);
     }
 
     private void ToggleIndicatorForm() => showIndicatorForm = !showIndicatorForm;
-    private void ToggleDirectionForm() => showDirectionForm = !showDirectionForm;
+    private void ToggleEvaluationForm() => showEvaluationForm = !showEvaluationForm;
 
-    private void ClearIndicatorForm()
-    {
-        newIndicator = new IndicatorModel();
-    }
-
-    private void ClearDirectionForm()
-    {
-        newDirection = new EvaluationDirectionModel();
-    }
-
-    public class TemplateModel
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-    }
-
-    public class IndicatorModel
+    private class IndicatorModel
     {
         public Guid TemplateId { get; set; }
         public Guid DirectionId { get; set; }
-        public string Code { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
+        public string Code { get; set; }
+        public string Name { get; set; }
+        public string Background { get; set; }
+        public string Source { get; set; }
         public decimal MaxScore { get; set; }
     }
 
-    public class EvaluationDirectionModel
+    private class TemplateModel
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
-        public string Name { get; set; } = string.Empty;
-        public decimal Weight { get; set; }
+        public Guid Id { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
     }
 }
