@@ -1,0 +1,179 @@
+﻿@page "/dashboard"
+
+@rendermode InteractiveServer
+
+@using System.IdentityModel.Tokens.Jwt
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<PageTitle>Dashboard</PageTitle>
+
+<div class="dashboard-container">
+    <h1 class="text-4xl font-semibold text-white mb-6">Привіт, <span id="userName" class="text-blue-500">@UserName</span>!</h1>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
+        <!-- Управління користувачами (Тільки для Admin) -->
+        @if (UserRole == "Admin")
+        {
+            <div class="dashboard-card">
+                <h2 class="text-xl font-semibold text-white">Управління користувачами</h2>
+                <p class="text-white">Перегляньте та редагуйте користувачів вашої системи.</p>
+                <RadzenButton Text="Перейти до управління" Click="NavigateToUserManagement" class="dashboard-button bg-blue-500" />
+            </div>
+
+            <div class="dashboard-card">
+                <h2 class="text-xl font-semibold text-white">Створення шаблонів</h2>
+                <p class="text-white">Створюйте нові шаблони для опитувань.</p>
+                <RadzenButton Text="Перейти до шаблонів" Click="NavigateToTemplateCreation" class="dashboard-button bg-green-500" />
+            </div>
+        }
+
+        <!-- Створення шаблонів (Тільки для Hromada) -->
+        @if (UserRole == "Hromada")
+        {
+            <div class="dashboard-card">
+                <h2 class="text-xl font-semibold text-white">Пройти опитування</h2>
+                <p class="text-white">Пройдіть опитування, щоб отримати доступ до додаткових функцій.</p>
+                <RadzenButton Text="Перейти до опитування" Click="NavigateToSurvey" class="dashboard-button bg-green-500" />
+            </div>
+        }
+
+        <!-- Створення шаблонів (Тільки для Control) -->
+        @if (UserRole == "Control")
+        {
+            <div class="dashboard-card">
+                <h2 class="text-xl font-semibold text-white">Створення шаблонів</h2>
+                <p class="text-white">Створюйте нові шаблони для опитувань.</p>
+                <RadzenButton Text="Перейти до шаблонів" Click="NavigateToTemplateCreation" class="dashboard-button bg-green-500" />
+            </div>
+        }
+
+        <!-- Перегляд результатів -->
+        <div class="dashboard-card">
+            <h2 class="text-xl font-semibold text-white">Перегляд результатів</h2>
+            <p class="text-white">Перегляньте результати опитувань та оцінки.</p>
+            <RadzenButton Text="Перейти до результатів" Click="NavigateToResults" class="dashboard-button bg-yellow-500" />
+        </div>
+    </div>
+</div>
+
+<style>
+    .content {
+        background: linear-gradient(45deg, #4e73df, #1d3a56);
+    }
+
+    .dashboard-container {
+        background: linear-gradient(45deg, #4e73df, #1d3a56);
+        padding: 4rem 2rem;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-card {
+        background: rgba(0, 0, 0, 0.5);
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        margin: 20px;
+    }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+        }
+
+    .dashboard-button {
+        margin-top: 1rem;
+        width: 100%;
+        padding: 1rem;
+        font-size: 1rem;
+        font-weight: 500;
+        color: white;
+        border-radius: 8px;
+        transition: background 0.3s ease;
+    }
+
+        .dashboard-button:hover {
+            transform: scale(1.05);
+        }
+
+    .bg-blue-500:hover {
+        background-color: #3b82f6;
+    }
+
+    .bg-green-500:hover {
+        background-color: #34d399;
+    }
+
+    .bg-yellow-500:hover {
+        background-color: #f59e0b;
+    }
+
+    @@media (max-width: 640px) {
+        h1 {
+            font-size: 2rem;
+        }
+
+        .grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@code {
+    private string UserName { get; set; }
+    private string UserRole { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Retrieve the JWT token from session storage and extract the user name and role
+            var token = await JS.InvokeAsync<string>("sessionStorage.getItem", new object[] { "authToken" });
+            if (!string.IsNullOrEmpty(token))
+            {
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
+                if (jsonToken != null)
+                {
+                    // Extract the user's name and role from the JWT token (assuming the claims are present)
+                    UserName = jsonToken.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value;
+                    UserRole = jsonToken.Claims.FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")?.Value;
+                }
+            }
+            StateHasChanged();  // Refresh UI with the updated UserName and UserRole
+        }
+    }
+
+    // Methods for navigation to other parts of the dashboard
+    private void NavigateToUserManagement()
+    {
+        Navigation.NavigateTo("/users");
+    }
+
+    private void NavigateToSurvey()
+    {
+        Navigation.NavigateTo("/templates");
+    }
+
+    private void NavigateToTemplateCreation()
+    {
+        Navigation.NavigateTo("/templates");
+    }
+
+    private void NavigateToResults()
+    {
+        Navigation.NavigateTo("/results");
+    }
+}

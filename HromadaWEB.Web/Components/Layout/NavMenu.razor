@@ -20,6 +20,15 @@
     <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
         <nav class="nav flex-column">
             <div class="nav-item px-3">
+                <a class="nav-link" href="dashboard">
+                    <i class="bi bi-plus-square-fill"></i> Панель керування
+                </a>
+            </div>
+        </nav>
+
+        <!-- Додано умовне відображення меню в залежності від ролі -->
+        <nav class="nav flex-column" id="user-management" style="display: none;">
+            <div class="nav-item px-3">
                 <a class="nav-link" href="users">
                     <i class="bi bi-plus-square-fill"></i> Керування користувачами
                 </a>
@@ -42,5 +51,45 @@
             </div>
         </nav>
     </div>
+
+    <script>
+        // Функція для отримання даних з JWT токену
+        function getRoleFromToken() {
+            const token = sessionStorage.getItem("authToken");
+            if (token) {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+
+                const decodedToken = JSON.parse(jsonPayload);
+                return decodedToken.role;
+            }
+            return null;
+        }
+
+        // Функція для керування доступом
+        function manageAccess() {
+            const role = getRoleFromToken();
+
+            if (role === 'Admin') {
+                // Якщо роль Admin, доступно все
+                document.getElementById("user-management").style.display = "block";
+            } else if (role === 'Hromada') {
+                // Якщо роль Hromada, доступно все, окрім Керування користувачами
+                document.getElementById("user-management").style.display = "none";
+            } else if (role === 'Control') {
+                // Якщо роль Control, доступно все, окрім Керування користувачами
+                document.getElementById("user-management").style.display = "none";
+            } else {
+                // Якщо роль невідома, приховуємо всі елементи, де доступ обмежений
+                document.getElementById("user-management").style.display = "none";
+            }
+        }
+
+        // Викликаємо функцію для налаштування доступу при завантаженні сторінки
+        window.onload = manageAccess;
+    </script>
 </body>
 </html>
