@@ -1,5 +1,4 @@
 ﻿@page "/survey/{id:guid}"
-
 @rendermode InteractiveServer
 
 @inject HttpClient Http
@@ -41,9 +40,15 @@
 
                     <RadzenButton Text="Відповісти" Click="() => OpenEditor(indicator.Id)" Disabled="@CompletedIndicators.Contains(indicator.Id)" Style="margin-top: 10px;" />
 
+                    @if (CompletedIndicators.Contains(indicator.Id))
+                    {
+                        <p class="text-gray-500 text-sm italic mt-2">Ви вже відповіли на цей індикатор</p>
+                    }
+                        
                     @if (ActiveIndicatorId == indicator.Id)
                     {
                         <RadzenHtmlEditor @bind-Value="AnswerText" />
+                        <RadzenNumeric @bind-Value="IndicatorScore" Min="0" Max="@indicator.MaxScore" Style="margin-top: 10px;" />
                         <RadzenButton Text="Зберегти" Click="() => SaveAnswer(indicator.Id)" Style="margin-top: 10px;" />
                     }
                 </div>
@@ -56,6 +61,7 @@
     .completed {
         opacity: 0.5;
         background-color: #f0f0f0;
+        pointer-events: none;
     }
 
     .indicator-card {
@@ -83,23 +89,23 @@
         var allIndicators = await Http.GetFromJsonAsync<List<Indicator>>("/api/Indicator");
         Indicators = allIndicators?.Where(i => i.TemplateId == Id).ToList() ?? new List<Indicator>();
 
-        // Завантажуємо напрямки та шаблони для кожного індикатора
         foreach (var indicator in Indicators)
         {
-            // Завантажуємо напрямок
             if (indicator.DirectionId != Guid.Empty)
             {
                 var allDirections = await Http.GetFromJsonAsync<List<EvaluationDirection>>("/api/EvaluationDirection");
                 indicator.Direction = allDirections.FirstOrDefault(d => d.Id == indicator.DirectionId);
             }
         }
+
+        // Завантажуємо відповіді користувача
+        await LoadCompletedIndicators();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            // Retrieve the JWT token from session storage and extract the user ID
             var token = await JS.InvokeAsync<string>("sessionStorage.getItem", new object[] { "authToken" });
             if (!string.IsNullOrEmpty(token))
             {
@@ -107,21 +113,43 @@
                 var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
                 if (jsonToken != null)
                 {
-                    // Ensure that the userId is properly parsed as a Guid
                     var userIdString = jsonToken.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
                     if (!string.IsNullOrEmpty(userIdString) && Guid.TryParse(userIdString, out Guid parsedUserId))
                     {
                         UserId = parsedUserId;
+                        await LoadCompletedIndicators(); // Після отримання UserId завантажуємо відповіді
                     }
                 }
             }
         }
     }
 
+    private async Task LoadCompletedIndicators()
+    {
+        try
+        {
+            var allAnswers = await Http.GetFromJsonAsync<List<IndicatorAnswers>>("/api/IndicatorAnswers");
+
+            if (allAnswers != null)
+            {
+                CompletedIndicators = allAnswers
+                    .Where(a => a.ResponserId == UserId)
+                    .Select(a => a.IndicatorId)
+                    .ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Не вдалося завантажити відповіді: {ex.Message}");
+        }
+    }
+
+
     private void OpenEditor(Guid indicatorId)
     {
         ActiveIndicatorId = indicatorId;
         AnswerText = "";
+        IndicatorScore = 0;
     }
 
     private async Task SaveAnswer(Guid indicatorId)
@@ -141,17 +169,15 @@
                     IndicatorId = indicator.Id,
                     AnswerText = AnswerText,
                     ResponserId = UserId,
-                    AnswerStatusId = 1, // Проставте відповідний статус
-                    Score = IndicatorScore // Використовуємо введену оцінку
+                    AnswerStatusId = 1,
+                    Score = IndicatorScore
                 };
 
             await Http.PostAsJsonAsync("/api/IndicatorAnswers", answer);
+
+            // Додаємо індикатор до списку завершених
             CompletedIndicators.Add(indicatorId);
             ActiveIndicatorId = null;
-        }
-        catch (HttpRequestException httpEx)
-        {
-            await JS.InvokeVoidAsync("alert", $"Сталася HTTP помилка: {httpEx.Message}");
         }
         catch (Exception ex)
         {

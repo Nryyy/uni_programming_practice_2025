@@ -1,0 +1,87 @@
+﻿@page "/templates/responses/{id:guid}"
+@rendermode InteractiveServer
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@inject DialogService DialogService
+
+@using HromadaWEB.Models.Entities
+@using Radzen
+
+<PageTitle>Відповіді на індикатори</PageTitle>
+
+<div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold text-gray-900 mb-6">Відповіді на індикатори</h1>
+
+    @if (Responses == null)
+    {
+        <p class="text-gray-500">Завантаження...</p>
+    }
+    else if (!Responses.Any())
+    {
+        <p class="text-gray-500">Немає відповідей для цього шаблону.</p>
+    }
+    else
+    {
+        <RadzenDataGrid Data="@Responses" TItem="IndicatorAnswers" AllowPaging="true" PageSize="10" AllowSorting="true">
+            <Columns>
+                <RadzenDataGridColumn TItem="IndicatorAnswers" Property="Indicator.Name" Title="Індикатор" />
+                <RadzenDataGridColumn TItem="IndicatorAnswers" Property="Responser.Email" Title="Користувач" />
+                <RadzenDataGridColumn TItem="IndicatorAnswers" Title="Відповідь">
+                    <Template Context="response">
+                        <div class="truncate w-60 inline-block" style="max-width: 250px;">
+                            @(response.AnswerText.Length > 30 ? response.AnswerText.Substring(0, 30) + "..." : response.AnswerText)
+                        </div>
+                        @if (response.AnswerText.Length > 30)
+                        {
+                            <RadzenButton Text="Показати повністю" Click="() => ShowFullAnswer(response.AnswerText)" Class="ml-2 p-1 text-blue-600 underline" />
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="IndicatorAnswers" Property="Score" Title="Оцінка" />
+            </Columns>
+        </RadzenDataGrid>
+    }
+</div>
+
+<RadzenDialog />
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private List<IndicatorAnswers> Responses = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var allResponses = await Http.GetFromJsonAsync<List<IndicatorAnswers>>("/api/IndicatorAnswers");
+            var allIndicators = await Http.GetFromJsonAsync<List<Indicator>>("/api/Indicator");
+            var allUsers = await Http.GetFromJsonAsync<List<User>>("/api/Users/all_users");
+
+            Responses = allResponses?
+                .Where(r => allIndicators.Any(i => i.Id == r.IndicatorId && i.TemplateId == Id))
+                .ToList() ?? new List<IndicatorAnswers>();
+
+            foreach (var response in Responses)
+            {
+                response.Indicator = allIndicators.FirstOrDefault(i => i.Id == response.IndicatorId);
+                response.Responser = allUsers.FirstOrDefault(u => u.Id == response.ResponserId);
+            }
+        }
+        catch (Exception ex)
+        {
+            // await JS.InvokeVoidAsync("alert", $"Не вдалося завантажити дані: {ex.Message}");
+        }
+    }
+
+    private async Task ShowFullAnswer(string answer)
+    {
+        await DialogService.OpenAsync("Повна відповідь", ds =>
+            builder => builder.AddContent(0, (MarkupString)$"<p class='text-gray-800 whitespace-pre-wrap'>{answer}</p>"),
+            new DialogOptions { Width = "500px", Height = "auto", CloseDialogOnOverlayClick = true }
+        );
+    }
+}
