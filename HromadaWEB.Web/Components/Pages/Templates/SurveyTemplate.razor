@@ -1,0 +1,161 @@
+﻿@page "/survey/{id:guid}"
+
+@rendermode InteractiveServer
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+@using HromadaWEB.Models.Entities
+@using System.IdentityModel.Tokens.Jwt
+@using System.Security.Claims
+@using Radzen
+@using Radzen.Blazor
+
+<PageTitle>Проходження опитування</PageTitle>
+
+<div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold text-gray-900 mb-4">Опитування</h1>
+
+    @if (Indicators == null)
+    {
+        <p class="text-gray-500">Завантаження індикаторів...</p>
+    }
+    else if (Indicators.Count == 0)
+    {
+        <p class="text-gray-500">Немає доступних індикаторів.</p>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            @foreach (var indicator in Indicators)
+            {
+                <div class="indicator-card p-4 border rounded-lg shadow-md transition-all duration-300 @(CompletedIndicators.Contains(indicator.Id) ? "completed" : "hover:shadow-lg")">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-2">@indicator.Name</h2>
+                    <p><strong>Напрямок:</strong> @(indicator.Direction?.Name ?? "Не вказано")</p>
+                    <p><strong>Вага напрямку:</strong> @(indicator.Direction?.Weight ?? 0)</p>
+                    <p><strong>Код:</strong> @indicator.Code</p>
+                    <p><strong>Підстава:</strong> @indicator.Background</p>
+                    <p><strong>Джерело:</strong> @indicator.Source</p>
+                    <p><strong>Максимальний бал:</strong> @indicator.MaxScore</p>
+
+                    <RadzenButton Text="Відповісти" Click="() => OpenEditor(indicator.Id)" Disabled="@CompletedIndicators.Contains(indicator.Id)" Style="margin-top: 10px;" />
+
+                    @if (ActiveIndicatorId == indicator.Id)
+                    {
+                        <RadzenHtmlEditor @bind-Value="AnswerText" />
+                        <RadzenButton Text="Зберегти" Click="() => SaveAnswer(indicator.Id)" Style="margin-top: 10px;" />
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .completed {
+        opacity: 0.5;
+        background-color: #f0f0f0;
+    }
+
+    .indicator-card {
+        background-color: #ffffff;
+    }
+
+        .indicator-card:hover {
+            background-color: #f9f9f9;
+        }
+</style>
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private List<Indicator> Indicators = new();
+    private List<Guid> CompletedIndicators = new();
+    private string AnswerText = "";
+    private Guid? ActiveIndicatorId;
+    private Guid UserId;
+    private int IndicatorScore { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var allIndicators = await Http.GetFromJsonAsync<List<Indicator>>("/api/Indicator");
+        Indicators = allIndicators?.Where(i => i.TemplateId == Id).ToList() ?? new List<Indicator>();
+
+        // Завантажуємо напрямки та шаблони для кожного індикатора
+        foreach (var indicator in Indicators)
+        {
+            // Завантажуємо напрямок
+            if (indicator.DirectionId != Guid.Empty)
+            {
+                var allDirections = await Http.GetFromJsonAsync<List<EvaluationDirection>>("/api/EvaluationDirection");
+                indicator.Direction = allDirections.FirstOrDefault(d => d.Id == indicator.DirectionId);
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Retrieve the JWT token from session storage and extract the user ID
+            var token = await JS.InvokeAsync<string>("sessionStorage.getItem", new object[] { "authToken" });
+            if (!string.IsNullOrEmpty(token))
+            {
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
+                if (jsonToken != null)
+                {
+                    // Ensure that the userId is properly parsed as a Guid
+                    var userIdString = jsonToken.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+                    if (!string.IsNullOrEmpty(userIdString) && Guid.TryParse(userIdString, out Guid parsedUserId))
+                    {
+                        UserId = parsedUserId;
+                    }
+                }
+            }
+        }
+    }
+
+    private void OpenEditor(Guid indicatorId)
+    {
+        ActiveIndicatorId = indicatorId;
+        AnswerText = "";
+    }
+
+    private async Task SaveAnswer(Guid indicatorId)
+    {
+        try
+        {
+            var indicator = Indicators.FirstOrDefault(i => i.Id == indicatorId);
+            if (indicator == null)
+            {
+                await JS.InvokeVoidAsync("alert", $"Індикатор з Id {indicatorId} не знайдено.");
+                return;
+            }
+
+            var answer = new IndicatorAnswers
+                {
+                    Id = Guid.NewGuid(),
+                    IndicatorId = indicator.Id,
+                    AnswerText = AnswerText,
+                    ResponserId = UserId,
+                    AnswerStatusId = 1, // Проставте відповідний статус
+                    Score = IndicatorScore // Використовуємо введену оцінку
+                };
+
+            await Http.PostAsJsonAsync("/api/IndicatorAnswers", answer);
+            CompletedIndicators.Add(indicatorId);
+            ActiveIndicatorId = null;
+        }
+        catch (HttpRequestException httpEx)
+        {
+            await JS.InvokeVoidAsync("alert", $"Сталася HTTP помилка: {httpEx.Message}");
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Сталася помилка: {ex.Message}");
+        }
+    }
+}

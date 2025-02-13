@@ -2,10 +2,13 @@
 
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 @rendermode InteractiveServer
 
 @using HromadaWEB.Models.DTOs.Templates
+@using System.IdentityModel.Tokens.Jwt
+@using System.Security.Claims
 
 <PageTitle>Шаблони</PageTitle>
 
@@ -35,56 +38,15 @@
             transform: scale(1.05);
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
         }
-
-    .template-buttons button {
-        margin-left: 10px;
-        padding: 10px;
-        border-radius: 8px;
-        font-weight: bold;
-        transition: background 0.3s ease-in-out;
-    }
-
-    .btn-create {
-        background: #007bff;
-        color: white;
-    }
-
-        .btn-create:hover {
-            background: #0056b3;
-        }
-
-    .btn-edit {
-        background: #ffcc00;
-        color: #333;
-    }
-
-        .btn-edit:hover {
-            background: #e6b800;
-        }
-
-    .btn-view {
-        background: #28a745;
-        color: white;
-    }
-
-        .btn-view:hover {
-            background: #1e7e34;
-        }
-
-    .btn-delete {
-        background: #dc3545;
-        color: white;
-    }
-
-        .btn-delete:hover {
-            background: #a71d2a;
-        }
 </style>
 
 <div class="container">
     <div class="header">
         <h1 class="text-2xl font-bold text-gray-900">Шаблони</h1>
-		<RadzenButton Text="Створити" Click="@CreateTemplate" Style="margin-left: 10px;" />
+        @if (UserRole != "Hromada")
+        {
+            <RadzenButton Text="Створити" Click="@CreateTemplate" Style="margin-left: 10px;" />
+        }
     </div>
 
     @if (Templates is null)
@@ -104,11 +66,18 @@
                     <h2 class="text-lg font-semibold text-gray-900">@template.Title</h2>
                     <span>@((MarkupString)template.Description)</span>
                     <div class="flex justify-between items-center mt-4">
-                        <span class="text-sm text-gray-500">@template.CreatedAt.ToShortDateString()</span>
+                        <span class="text-sm text-gray-500">Дата стоврення: @template.CreatedAt.ToShortDateString()</span>
                         <div class="template-buttons">
-                            <RadzenButton Text="Редагувати шаблон" Icon="refresh" Click="@(() => EditTemplate(template.Id))" ButtonStyle="ButtonStyle.Base" />
-                            <RadzenButton Text="Подивитися відповіді" Icon="check_circle" Click="@(() => ViewResponses(template.Id))" ButtonStyle="ButtonStyle.Base" />
-                            <RadzenButton Text="Видалити" Icon="report" Click="@(() => DeleteTemplate(template.Id))" ButtonStyle="ButtonStyle.Base" />
+                            @if (UserRole != "Hromada")
+                            {
+                                <RadzenButton Text="Редагувати шаблон" Click="@(() => EditTemplate(template.Id))" />
+                                <RadzenButton Text="Подивитися відповіді" Click="@(() => ViewResponses(template.Id))" />
+                                <RadzenButton Text="Видалити" Click="@(() => DeleteTemplate(template.Id))" />
+                            }
+                            else if (UserRole == "Hromada")
+                            {
+                                <RadzenButton Text="Пройти опитування" Click="@( () => TakeSurvey(template.Id))" Style="margin-bottom: 20px;" />
+                            }
                         </div>
                     </div>
                 </div>
@@ -119,11 +88,36 @@
 
 @code {
     private List<TemplateDto> Templates = new();
+    private string UserRole = "";
+    private bool _isInitialized;
 
     protected override async Task OnInitializedAsync()
     {
         Templates = await Http.GetFromJsonAsync<List<TemplateDto>>("https://localhost:7358/api/Template/all_templates");
     }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadUserRole();
+            _isInitialized = true;
+            StateHasChanged(); // Оновлюємо інтерфейс після отримання ролі
+        }
+    }
+
+    private async Task LoadUserRole()
+    {
+        var token = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+        if (!string.IsNullOrEmpty(token))
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+            var roleClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
+            UserRole = roleClaim?.Value ?? "";
+        }
+    }
+
 
     private void CreateTemplate()
     {
@@ -143,5 +137,10 @@
     private void DeleteTemplate(Guid id)
     {
         // Implement delete logic
+    }
+
+    private void TakeSurvey(Guid id)
+    {
+        Navigation.NavigateTo($"/survey/{id}");
     }
 }

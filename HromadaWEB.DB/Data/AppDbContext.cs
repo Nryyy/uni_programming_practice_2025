@@ -15,5 +15,30 @@ namespace HromadaWEB.DB.Data
         public DbSet<Template> Templates { get; set; }
         public DbSet<EvaluationDirection> EvaluationDirections { get; set; }
         public DbSet<Indicator> Indicators { get; set; }
+        public DbSet<AnswerStatus> AnswerStatuses { get; set; }
+        public DbSet<IndicatorAnswers> IndicatorAnswers { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<IndicatorAnswers>()
+                .HasOne(ia => ia.Responser)
+                .WithMany() // Якщо у `User` є колекція `IndicatorAnswers`, вкажи її тут
+                .HasForeignKey(ia => ia.ResponserId)
+                .OnDelete(DeleteBehavior.NoAction); // Вимикає каскадне видалення
+
+            modelBuilder.Entity<IndicatorAnswers>()
+                .HasOne(ia => ia.Indicator)
+                .WithMany()
+                .HasForeignKey(ia => ia.IndicatorId)
+                .OnDelete(DeleteBehavior.Cascade); // Якщо потрібно каскадне видалення
+
+            modelBuilder.Entity<IndicatorAnswers>()
+                .HasOne(ia => ia.AnswerStatus)
+                .WithMany()
+                .HasForeignKey(ia => ia.AnswerStatusId)
+                .OnDelete(DeleteBehavior.Restrict); // Обмежує видалення, щоб уникнути помилок
+
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }
