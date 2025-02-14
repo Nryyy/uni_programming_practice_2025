@@ -1,0 +1,51 @@
+﻿@inject HttpClient Http
+@inject DialogService DialogService
+
+@code {
+    [Parameter] public Guid IndicatorAnswerId { get; set; }
+
+    private string Comment { get; set; } = string.Empty;
+    private bool IsSubmitting { get; set; } = false;
+
+    private async Task SubmitReview()
+    {
+        if (string.IsNullOrWhiteSpace(Comment))
+        {
+            return;
+        }
+
+        IsSubmitting = true;
+
+        var review = new
+        {
+            IndicatorAnswerId,
+            Comment,
+            Date = DateTime.UtcNow
+        };
+
+        try
+        {
+            await Http.PostAsJsonAsync("/api/Reviews", review);
+            DialogService.Close();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error submitting review: {ex.Message}");
+        }
+        finally
+        {
+            IsSubmitting = false;
+        }
+    }
+}
+
+<div class="p-4">
+    <h2 class="text-xl font-semibold mb-4">Залишити відгук</h2>
+
+    <textarea @bind="Comment" class="w-full border rounded p-2" rows="4" placeholder="Введіть ваш відгук..."></textarea>
+
+    <div class="mt-4 flex justify-end">
+        <RadzenButton Text="Скасувати" Click="() => DialogService.Close()" Class="mr-2" />
+        <RadzenButton Text="Надіслати" Click="SubmitReview" Disabled="IsSubmitting" Style="background-color: #4CAF50; color: white;" />
+    </div>
+</div>

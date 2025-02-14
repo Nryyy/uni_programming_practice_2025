@@ -29,6 +29,10 @@ using HromadaWEB.Infrastructure.Interfaces.IndicatorAnswer;
 using HromadaWEB.Infrastructure.Services.IndicatorAnswer;
 using HromadaWEB.Infrastructure.Repositories.IndicatorAnswer;
 using HromadaWEB.Service.Handlers.IndicatorAswer;
+using HromadaWEB.Service.Handlers.Review;
+using HromadaWEB.Infrastructure.Interfaces.Review;
+using HromadaWEB.Infrastructure.Services.Review;
+using HromadaWEB.Infrastructure.Repositories.Review;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -115,6 +119,12 @@ builder.Services.AddMediatR(configuration =>
     configuration.RegisterServicesFromAssembly(typeof(CreateIndicatorAnswerHandler).Assembly);
     configuration.RegisterServicesFromAssembly(typeof(UpdateIndicatorAnswerHandler).Assembly);
     configuration.RegisterServicesFromAssembly(typeof(DeleteIndicatorAnswerHandler).Assembly);
+
+    configuration.RegisterServicesFromAssembly(typeof(GetAllReviewsHandler).Assembly);
+    configuration.RegisterServicesFromAssembly(typeof(GetReviewByIdHandler).Assembly);
+    configuration.RegisterServicesFromAssembly(typeof(CreateReviewHandler).Assembly);
+    configuration.RegisterServicesFromAssembly(typeof(UpdateReviewHandler).Assembly);
+    configuration.RegisterServicesFromAssembly(typeof(DeleteReviewHandler).Assembly);
 });
 
 var secret = builder.Configuration.GetValue<string>("AppSettings:Token");
@@ -156,6 +166,9 @@ builder.Services.AddScoped<IIndicatorRepository, IndicatorRepository>();
 
 builder.Services.AddScoped<IIndicatorAnswersService, IndicatorAnswersService>();
 builder.Services.AddScoped<IIndicatorAnswersRepository, IndicatorAnswersRepository>();
+
+builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
 builder.Services.AddOpenApi();
 

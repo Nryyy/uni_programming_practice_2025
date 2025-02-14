@@ -40,12 +40,15 @@
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="IndicatorAnswers" Property="Score" Title="Оцінка" />
+                <RadzenDataGridColumn TItem="IndicatorAnswers" Title="Відгук">
+                    <Template Context="response">
+                        <RadzenButton Text="Залишити відгук" Click="() => LeaveReview(response.Id)" Class="ml-2 p-1 text-green-600 underline" />
+                    </Template>
+                </RadzenDataGridColumn>
             </Columns>
         </RadzenDataGrid>
     }
 </div>
-
-<RadzenDialog />
 
 @code {
     [Parameter]
@@ -61,19 +64,32 @@
             var allIndicators = await Http.GetFromJsonAsync<List<Indicator>>("/api/Indicator");
             var allUsers = await Http.GetFromJsonAsync<List<User>>("/api/Users/all_users");
 
-            Responses = allResponses?
-                .Where(r => allIndicators.Any(i => i.Id == r.IndicatorId && i.TemplateId == Id))
-                .ToList() ?? new List<IndicatorAnswers>();
-
-            foreach (var response in Responses)
+            if (allResponses == null || allIndicators == null || allUsers == null)
             {
-                response.Indicator = allIndicators.FirstOrDefault(i => i.Id == response.IndicatorId);
-                response.Responser = allUsers.FirstOrDefault(u => u.Id == response.ResponserId);
+                Responses = new List<IndicatorAnswers>();
+                return;
             }
+
+            var indicatorMap = allIndicators.Where(i => i.TemplateId == Id).ToDictionary(i => i.Id);
+            var userMap = allUsers.ToDictionary(u => u.Id);
+
+            Responses = allResponses
+                .Where(r => indicatorMap.ContainsKey(r.IndicatorId))
+                .Select(r => new IndicatorAnswers
+                    {
+                        Id = r.Id,
+                        IndicatorId = r.IndicatorId,
+                        ResponserId = r.ResponserId,
+                        AnswerText = r.AnswerText,
+                        Score = r.Score,
+                        Indicator = indicatorMap[r.IndicatorId],
+                        Responser = userMap.GetValueOrDefault(r.ResponserId)
+                    })
+                .ToList();
         }
         catch (Exception ex)
         {
-            // await JS.InvokeVoidAsync("alert", $"Не вдалося завантажити дані: {ex.Message}");
+            // Логування помилки або обробка виключення
         }
     }
 
@@ -83,5 +99,12 @@
             builder => builder.AddContent(0, (MarkupString)$"<p class='text-gray-800 whitespace-pre-wrap'>{answer}</p>"),
             new DialogOptions { Width = "500px", Height = "auto", CloseDialogOnOverlayClick = true }
         );
+    }
+
+    private async Task LeaveReview(Guid answerId)
+    {
+        await DialogService.OpenAsync<LeaveReviewDialog>("Залишити відгук",
+            new Dictionary<string, object> { { "IndicatorAnswerId", answerId } },
+            new DialogOptions { Width = "600px", Height = "auto", CloseDialogOnOverlayClick = false });
     }
 }
