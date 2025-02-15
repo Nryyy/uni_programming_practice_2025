@@ -1,0 +1,17 @@
+﻿@using Radzen.Blazor
+
+<div class="radzen-dialog">
+    <h3>Відгук</h3>
+    <p>@ReviewText</p>
+    <RadzenButton Text="Закрити" Click="CloseDialog" />
+</div>
+
+@code {
+    [Parameter] public string ReviewText { get; set; }
+    [CascadingParameter] public DialogService DialogService { get; set; }
+
+    private void CloseDialog()
+    {
+        DialogService.Close();
+    }
+}

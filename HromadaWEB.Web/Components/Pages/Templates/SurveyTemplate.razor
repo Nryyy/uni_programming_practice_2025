@@ -44,13 +44,31 @@
                     {
                         <p class="text-gray-500 text-sm italic mt-2">Ви вже відповіли на цей індикатор</p>
                     }
-                        
+
                     @if (ActiveIndicatorId == indicator.Id)
                     {
                         <RadzenHtmlEditor @bind-Value="AnswerText" />
                         <RadzenNumeric @bind-Value="IndicatorScore" Min="0" Max="@indicator.MaxScore" Style="margin-top: 10px;" />
                         <RadzenButton Text="Зберегти" Click="() => SaveAnswer(indicator.Id)" Style="margin-top: 10px;" />
                     }
+
+                    <div class="reviews mt-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Відгуки:</h3>
+                        @if (IndicatorAnswers.ContainsKey(indicator.Id))
+                        {
+                            var indicatorAnswerId = IndicatorAnswers[indicator.Id].Id;
+                            @if (Reviews.ContainsKey(indicatorAnswerId))
+                            {
+                                @foreach (var review in Reviews[indicatorAnswerId])
+                                {
+                                    <div class="review p-2 border rounded-lg mt-2">
+                                        <p>@review.Comment</p>
+                                        <p class="text-sm text-gray-500">@review.Date.ToString("dd.MM.yyyy")</p>
+                                    </div>
+                                }
+                            }
+                        }
+                    </div>
                 </div>
             }
         </div>
@@ -83,6 +101,8 @@
     private Guid? ActiveIndicatorId;
     private Guid UserId;
     private int IndicatorScore { get; set; }
+    private Dictionary<Guid, List<Reviews>> Reviews = new();
+    private Dictionary<Guid, IndicatorAnswers> IndicatorAnswers = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -100,6 +120,9 @@
 
         // Завантажуємо відповіді користувача
         await LoadCompletedIndicators();
+
+        // Завантажуємо відгуки
+        await LoadReviews();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -136,6 +159,10 @@
                     .Where(a => a.ResponserId == UserId)
                     .Select(a => a.IndicatorId)
                     .ToList();
+
+                IndicatorAnswers = allAnswers
+                    .Where(a => a.ResponserId == UserId)
+                    .ToDictionary(a => a.IndicatorId, a => a);
             }
         }
         catch (Exception ex)
@@ -144,6 +171,24 @@
         }
     }
 
+    private async Task LoadReviews()
+    {
+        try
+        {
+            var allReviews = await Http.GetFromJsonAsync<List<Reviews>>("/api/Reviews");
+
+            if (allReviews != null)
+            {
+                Reviews = allReviews
+                    .GroupBy(r => r.IndicatorAnswerId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Не вдалося завантажити відгуки: {ex.Message}");
+        }
+    }
 
     private void OpenEditor(Guid indicatorId)
     {
@@ -185,3 +230,4 @@
         }
     }
 }
+
