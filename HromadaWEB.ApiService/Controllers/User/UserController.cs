@@ -18,7 +18,6 @@ namespace HromadaWEB.API.Controllers
             _mediator = mediator;
         }
 
-        [Authorize(Roles = "Control")]
         // Отримати користувача за ID
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUserById(Guid id)
@@ -43,7 +42,6 @@ namespace HromadaWEB.API.Controllers
             return Ok(users);
         }
 
-        [Authorize(Roles = "Admin")]
         // Оновити користувача
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(Guid id, [FromBody] User user)
@@ -63,7 +61,6 @@ namespace HromadaWEB.API.Controllers
             return NoContent();
         }
 
-        [Authorize(Roles = "Admin")]
         // Видалити користувача
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(Guid id)

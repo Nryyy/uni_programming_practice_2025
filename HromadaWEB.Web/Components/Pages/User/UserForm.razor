@@ -5,6 +5,7 @@
 
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 @using HromadaWEB.Models.DTOs
 
 <div class="container">
@@ -36,65 +37,145 @@
             <button class="primary" @onclick="SaveUser">Зберегти</button>
             <button class="secondary" @onclick="Cancel">Скасувати</button>
         </div>
+
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <div class="error">@ErrorMessage</div>
+        }
     </div>
 </div>
 
 @code {
     [Parameter] public Guid? UserId { get; set; }
     private UserDto User = new();
-    private bool _isEditing = false;
     private List<RoleDto> _roles = new();
-    private string registrationError;
+    private string ErrorMessage = "";
+    private bool tokenLoaded = false;
+    private bool _isEditing => UserId.HasValue;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        _roles = await Http.GetFromJsonAsync<List<RoleDto>>("api/Role/roles");
+        if (firstRender && !tokenLoaded)
+        {
+            await LoadRoles();
+            await LoadUser();
+        }
+    }
 
+    private async Task LoadRoles()
+    {
+        try
+        {
+            var token = await GetAuthTokenAsync();
+            if (string.IsNullOrEmpty(token)) return;
+
+            var response = await Http.GetFromJsonAsync<List<RoleDto>>("https://localhost:7358/api/Role/roles");
+            if (response != null)
+            {
+                _roles = response;
+            }
+            else
+            {
+                ErrorMessage = "Не вдалося отримати ролі.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Сталася помилка: {ex.Message}";
+        }
+    }
+
+    private async Task LoadUser()
+    {
         if (UserId.HasValue)
         {
-            // Якщо це редагування, отримуємо дані користувача
-            User = await Http.GetFromJsonAsync<UserDto>($"api/users/{UserId.Value}");
-            _isEditing = true;
+            try
+            {
+                var token = await GetAuthTokenAsync();
+                if (string.IsNullOrEmpty(token)) return;
+
+                var response = await Http.GetFromJsonAsync<UserDto>($"https://localhost:7358/api/users/{UserId.Value}");
+                if (response != null)
+                {
+                    User = response;
+                }
+                else
+                {
+                    ErrorMessage = "Не вдалося отримати користувача.";
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Сталася помилка: {ex.Message}";
+            }
         }
+
+        tokenLoaded = true;
+        StateHasChanged();
     }
 
     private async Task SaveUser()
     {
-        if (_isEditing)
+        try
         {
-            // Редагування користувача
-            var response = await Http.PutAsJsonAsync($"api/users/{User.Id}", User);
+            var token = await GetAuthTokenAsync();
+            if (string.IsNullOrEmpty(token)) return;
+
+            HttpResponseMessage response;
+
+            // Перевірка, чи користувач редагується чи створюється
+            if (_isEditing)
+            {
+                var updateUserDto = new UserDto
+                    {
+                        Id = User.Id,
+                        Username = User.Username,
+                        Email = User.Email,
+                        PasswordHash = User.PasswordHash,
+                        RoleId = User.RoleId, // передаємо RoleId при редагуванні користувача
+                        IsBlocked = User.IsBlocked
+                    };
+
+                // Оновлення користувача
+                response = await Http.PutAsJsonAsync($"https://localhost:7358/api/users/{User.Id}", updateUserDto);
+            }
+            else
+            {
+                // Якщо створюємо нового користувача
+                var registrationDto = new RegistrationDto
+                    {
+                        Username = User.Username,
+                        Email = User.Email,
+                        Password = User.PasswordHash,
+                        ConfirmPassword = User.PasswordHash,
+                        RoleId = User.RoleId
+                    };
+
+                // Реєстрація нового користувача
+                response = await Http.PostAsJsonAsync("https://localhost:7358/api/Auth/register", registrationDto);
+            }
+
             if (response.IsSuccessStatusCode)
             {
                 Navigation.NavigateTo("/users");
             }
             else
             {
-                registrationError = "Не вдалося оновити користувача.";
+                ErrorMessage = "Помилка: " + await response.Content.ReadAsStringAsync();
             }
         }
-        else
+        catch (Exception ex)
         {
-            // Створення нового користувача
-            var registrationDto = new RegistrationDto
-                {
-                    Username = User.Username,
-                    Email = User.Email,
-                    Password = User.PasswordHash,
-                    ConfirmPassword = User.PasswordHash // Потрібно додати підтвердження пароля
-                };
-
-            var response = await Http.PostAsJsonAsync("api/Auth/register", registrationDto);
-            if (response.IsSuccessStatusCode)
-            {
-                Navigation.NavigateTo("/users");
-            }
-            else
-            {
-                registrationError = "Не вдалося зареєструвати користувача.";
-            }
+            ErrorMessage = $"Сталася помилка: {ex.Message}";
         }
     }
 
+
     private void Cancel() => Navigation.NavigateTo("/users");
+
+    private async Task<string> GetAuthTokenAsync()
+    {
+        var token = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+        return token?.Trim('"') ?? "";
+    }
 }

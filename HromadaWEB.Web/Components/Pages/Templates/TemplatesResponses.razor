@@ -3,6 +3,7 @@
 
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@using System.IdentityModel.Tokens.Jwt
 @inject IJSRuntime JS
 @inject DialogService DialogService
 
@@ -45,6 +46,11 @@
                         <RadzenButton Text="Залишити відгук" Click="() => LeaveReview(response.Id)" Class="ml-2 p-1 text-green-600 underline" />
                     </Template>
                 </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="IndicatorAnswers" Title="Оцінка">
+                    <Template Context="response">
+                        <RadzenButton Text="Оцінити" Click="() => EvaluateResponse(response.Id)" Class="ml-2 p-1 text-yellow-600 underline" />
+                    </Template>
+                </RadzenDataGridColumn>
             </Columns>
         </RadzenDataGrid>
     }
@@ -55,6 +61,7 @@
     public Guid Id { get; set; }
 
     private List<IndicatorAnswers> Responses = new();
+    private Guid UserId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -86,6 +93,21 @@
                         Responser = userMap.GetValueOrDefault(r.ResponserId)
                     })
                 .ToList();
+
+            var token = await JS.InvokeAsync<string>("sessionStorage.getItem", new object[] { "authToken" });
+            if (!string.IsNullOrEmpty(token))
+            {
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
+                if (jsonToken != null)
+                {
+                    var userIdString = jsonToken.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+                    if (!string.IsNullOrEmpty(userIdString) && Guid.TryParse(userIdString, out Guid parsedUserId))
+                    {
+                        UserId = parsedUserId;
+                    }
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -106,5 +128,26 @@
         await DialogService.OpenAsync<LeaveReviewDialog>("Залишити відгук",
             new Dictionary<string, object> { { "IndicatorAnswerId", answerId } },
             new DialogOptions { Width = "600px", Height = "auto", CloseDialogOnOverlayClick = false });
+    }
+
+    private async Task EvaluateResponse(Guid answerId)
+    {
+        var score = await DialogService.OpenAsync<EvaluationDialog>("Оцінити відповідь",
+            new Dictionary<string, object> { { "AnswerId", answerId } },
+            new DialogOptions { Width = "400px", Height = "auto", CloseDialogOnOverlayClick = false });
+
+        if (score != null)
+        {
+            var evaluation = new Evaluation
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = UserId,
+                    Score = (decimal)score,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+            await Http.PostAsJsonAsync("/api/Evaluations", evaluation);
+            await JS.InvokeVoidAsync("alert", "Оцінка успішно додана.");
+        }
     }
 }

@@ -19,4 +19,5 @@ public class RegistrationDto
     public bool IsCommunity { get; set; } // Нове поле для вибору
     public string? CommunityName { get; set; } // Назва громади
     public string? Region { get; set; } // Регiон громади
+    public int RoleId { get; set; }
 }

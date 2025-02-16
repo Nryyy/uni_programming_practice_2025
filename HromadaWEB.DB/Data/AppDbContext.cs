@@ -18,6 +18,7 @@ namespace HromadaWEB.DB.Data
         public DbSet<AnswerStatus> AnswerStatuses { get; set; }
         public DbSet<IndicatorAnswers> IndicatorAnswers { get; set; }
         public DbSet<Reviews> Reviews { get; set; }
+        public DbSet<Evaluation> Evaluations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

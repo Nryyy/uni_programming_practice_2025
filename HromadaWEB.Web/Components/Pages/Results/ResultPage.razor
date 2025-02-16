@@ -1,0 +1,85 @@
+﻿@page "/summary"
+@rendermode InteractiveServer
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+@using HromadaWEB.Models.Entities
+@using System.Net.Http.Json
+@using Radzen
+@using Radzen.Blazor
+
+<h3 class="title text-center text-primary font-semibold">Підсумкова сторінка</h3>
+
+<RadzenCard Class="p-6 shadow-lg rounded-lg bg-light mb-6">
+    <h4 class="text-xl font-bold text-dark mb-4">Оцінки</h4>
+    <RadzenDataGrid TItem="Evaluation" Data="@evaluations" ColumnWidth="200px" Class="w-full" Style="border: none;">
+        <Columns>
+            <RadzenDataGridColumn TItem="Evaluation" Property="User.Username" Title="Користувач" />
+            <RadzenDataGridColumn TItem="Evaluation" Property="Score" Title="Оцінка" />
+            <RadzenDataGridColumn TItem="Evaluation" Property="CreatedAt" Title="Дата створення" />
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+<RadzenCard Class="p-6 shadow-lg rounded-lg bg-light mb-6">
+    <h4 class="text-xl font-bold text-dark mb-4">Шаблони</h4>
+    <RadzenDataGrid TItem="Template" Data="@templates" ColumnWidth="200px" Class="w-full" Style="border: none;">
+        <Columns>
+            <RadzenDataGridColumn TItem="Template" Property="Title" Title="Назва" />
+            <RadzenDataGridColumn TItem="Template" Property="Description" Title="Опис">
+                <Template Context="data">
+                    <div>@((MarkupString)data.Description)</div>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="Template" Property="CreatedBy.Username" Title="Створено користувачем" />
+            <RadzenDataGridColumn TItem="Template" Property="CreatedAt" Title="Дата створення" />
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+<RadzenCard Class="p-6 shadow-lg rounded-lg bg-light mb-6">
+    <h4 class="text-xl font-bold text-dark mb-4">Індикатори</h4>
+    <RadzenDataGrid TItem="Indicator" Data="@indicators" ColumnWidth="200px" Class="w-full" Style="border: none;">
+        <Columns>
+            <RadzenDataGridColumn TItem="Indicator" Property="Code" Title="Код" />
+            <RadzenDataGridColumn TItem="Indicator" Property="Name" Title="Назва" />
+            <RadzenDataGridColumn TItem="Indicator" Property="Background" Title="Підстава" />
+            <RadzenDataGridColumn TItem="Indicator" Property="Source" Title="Джерело" />
+            <RadzenDataGridColumn TItem="Indicator" Property="MaxScore" Title="Максимальний бал" />
+            <RadzenDataGridColumn TItem="Indicator" Property="Direction.Name" Title="Напрям" />
+            <RadzenDataGridColumn TItem="Indicator" Property="Direction.Weight" Title="Вага" />
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+<RadzenCard Class="p-6 shadow-lg rounded-lg bg-light mb-6 text-center">
+    <RadzenButton Text="Згенерувати PDF" Click="@GeneratePdf" Class="btn-primary" Style="font-size: 18px; padding: 12px 30px;" />
+</RadzenCard>
+
+@code {
+    private List<Evaluation> evaluations = new();
+    private List<Template> templates = new();
+    private List<Indicator> indicators = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        evaluations = await Http.GetFromJsonAsync<List<Evaluation>>("api/Evaluations");
+        templates = await Http.GetFromJsonAsync<List<Template>>("api/Template/all_templates");
+        indicators = await Http.GetFromJsonAsync<List<Indicator>>("api/Indicator");
+    }
+
+    // Метод для генерації PDF
+    private async Task GeneratePdf()
+    {
+        var pdfData = await Http.GetByteArrayAsync("api/report/generate-pdf");
+        var fileName = "SummaryReport.pdf";
+        await JSRuntime.InvokeVoidAsync("saveAsFile", fileName, pdfData);
+    }
+}
